@@ -14,16 +14,13 @@ unsigned int field_add(unsigned int x, unsigned int y);
 unsigned int field_sub(unsigned int x, unsigned int y);
 unsigned int field_mul(unsigned int x, unsigned int y, unsigned int GF_vector[FIELD_SIZE], unsigned int GF_index[FIELD_SIZE]);
 
-int main(int argc, char *argv[])
+int main(void)
 {
 	unsigned int GF_vector[FIELD_SIZE] = {0, 1, 2, 3, 4, 5, 6, 7};
 	unsigned int GF_index[FIELD_SIZE] = {0, 1, 2, 4, 3, 6, 7, 5};
-	unsigned int i;
-	unsigned int dataX[2] = {0, 1};
-	unsigned int dataY[2] = {0, 3};
 
-	unsigned int testX = 2;
-	unsigned int testY = 1;
+	unsigned int testX = 4;
+	unsigned int testY = 3;
 	unsigned int testZ;
 
 	testZ = field_add(testX, testY);
@@ -58,10 +55,10 @@ unsigned int field_mul(unsigned int x, unsigned int y, unsigned int GF_vector[FI
 	int indAns;
 
 	for (i = 1; i < FIELD_SIZE; i++) {
-		if ((~x & GF_index[i]) == 0x00) {
+		if (x == GF_index[i]) {
 			indX = i - 1;
 		}
-		if ((~y & GF_index[i]) == 0x00) {
+		if (y == GF_index[i]) {
 			indY = i - 1;
 		}
 	}
@@ -69,5 +66,9 @@ unsigned int field_mul(unsigned int x, unsigned int y, unsigned int GF_vector[FI
 	printf("indY = %d\n", indY);
 	indAns = (indX + indY) % (FIELD_SIZE - 1);
 
-	return GF_vector[GF_index[indAns + 1]];
+	for (i = 1; i < FIELD_SIZE; i++) {
+		if (GF_index[indAns + 1] == GF_vector[i]) {
+			return GF_vector[i];
+		}
+	}
 }
