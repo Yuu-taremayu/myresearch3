@@ -10,6 +10,7 @@
 /* use BIT_MASK for truncate upper bit */
 #define BIT_MASK 0x07
 
+/* arithmetic functions */
 unsigned int field_add(unsigned int x, unsigned int y);
 unsigned int field_sub(unsigned int x, unsigned int y);
 unsigned int field_mul(unsigned int x, unsigned int y, unsigned int GF_vector[FIELD_SIZE], unsigned int GF_index[FIELD_SIZE]);
