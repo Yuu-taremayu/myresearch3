@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 /* Galois field size */
@@ -14,6 +15,7 @@
 unsigned int field_add(unsigned int x, unsigned int y);
 unsigned int field_sub(unsigned int x, unsigned int y);
 unsigned int field_mul(unsigned int x, unsigned int y, unsigned int GF_vector[FIELD_SIZE], unsigned int GF_index[FIELD_SIZE]);
+unsigned int field_div(unsigned int x, unsigned int y, unsigned int GF_vector[FIELD_SIZE], unsigned int GF_index[FIELD_SIZE]);
 
 int main(void)
 {
@@ -21,7 +23,7 @@ int main(void)
 	unsigned int GF_index[FIELD_SIZE] = {0, 1, 2, 4, 3, 6, 7, 5};
 
 	unsigned int testX = 4;
-	unsigned int testY = 3;
+	unsigned int testY = 5;
 	unsigned int testZ;
 
 	testZ = field_add(testX, testY);
@@ -30,6 +32,8 @@ int main(void)
 	printf("%d - %d = %d\n", testX, testY, testZ);
 	testZ = field_mul(testX, testY, GF_vector, GF_index);
 	printf("%d * %d = %d\n", testX, testY, testZ);
+	testZ = field_div(testX, testY, GF_vector, GF_index);
+	printf("%d / %d = %d\n", testX, testY, testZ);
 
 	return 0;
 }
@@ -63,8 +67,11 @@ unsigned int field_mul(unsigned int x, unsigned int y, unsigned int GF_vector[FI
 			indY = i - 1;
 		}
 	}
+	/* debug lines */
+	/*
 	printf("indX = %d\n", indX);
 	printf("indY = %d\n", indY);
+	*/
 	indAns = (indX + indY) % (FIELD_SIZE - 1);
 
 	for (i = 1; i < FIELD_SIZE; i++) {
@@ -72,4 +79,44 @@ unsigned int field_mul(unsigned int x, unsigned int y, unsigned int GF_vector[FI
 			return GF_vector[i];
 		}
 	}
+
+	return EXIT_FAILURE;
+}
+
+unsigned int field_div(unsigned int x, unsigned int y, unsigned int GF_vector[FIELD_SIZE], unsigned int GF_index[FIELD_SIZE])
+{
+	if (x == 0) {
+		return 0;
+	}
+	else if (y == 0) {
+		return EXIT_FAILURE;
+	}
+
+	int i;
+	int indX;
+	int indY;
+	int indAns;
+
+	for (i = 1; i < FIELD_SIZE; i++) {
+		if (x == GF_index[i]) {
+			indX = i - 1;
+		}
+		if (y == GF_index[i]) {
+			indY = i - 1;
+		}
+	}
+	/* debug lines */
+	/*
+	printf("indX = %d\n", indX);
+	printf("indY = %d\n", indY);
+	*/
+	indAns = (indX * ((FIELD_SIZE - 1) - indY)) % (FIELD_SIZE - 1);
+
+	for (i = 1; i < FIELD_SIZE; i++) {
+		if (GF_index[indAns + 1] == GF_vector[i]) {
+			return GF_vector[i];
+		}
+	}
+
+	return EXIT_FAILURE;
 }
