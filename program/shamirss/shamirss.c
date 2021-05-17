@@ -17,6 +17,10 @@ typedef const struct GF_info {
 	unsigned int index[FIELD_SIZE];
 } GF_info;
 
+/* generating functions to prepare secret sharing */
+void generate_server_id(unsigned int *serverId, int n);
+void generate_polynomial(unsigned int *poly, int k);
+
 /* lagrange interpolation */
 unsigned int lagrange(int dataNum, unsigned int dataX[], unsigned int dataY[], GF_info GF);
 unsigned int base_poly(int dataNum, int i, unsigned int x, unsigned int dataX[], GF_info GF);
@@ -35,10 +39,41 @@ int main(void)
 	};
 	int k = 3;
 	int n = 4;
+	unsigned int *serverId;
+	unsigned int *poly;
 	int dataNum = 0;
 	unsigned int L = 0;
 
+	serverId = (unsigned int *)malloc(sizeof(unsigned int) * n);
+	poly = (unsigned int *)malloc(sizeof(unsigned int) * k);
+
+	generate_server_id(serverId, n);
+	generate_polynomial(poly, k);
+
+	free(serverId);
+	free(poly);
+
 	return 0;
+}
+
+/* prepare server IDs that are all different */
+void generate_server_id(unsigned int *serverId, int n)
+{
+	int i = 0;
+
+	for (i = 0; i < n; i++) {
+		serverId[i] = i + 1;
+	}
+}
+
+/* prepare polynomial for generating shares */
+void generate_polynomial(unsigned int *poly, int k)
+{
+	int i = 0;
+
+	for (i = 0; i < k; i++) {
+		poly[i] = rand() % 2;
+	}
 }
 
 /* lagrange interpolation on GF(extension field) */
