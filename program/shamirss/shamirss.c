@@ -32,13 +32,13 @@ int main(void)
 	GF_info GF = {
 		{0, 1, 2, 3, 4, 5, 6, 7},
 		{0, 1, 2, 4, 3, 6, 7, 5}};
-	int dataNum;
+	int dataNum = 0;
 	unsigned int dataX[] = {1, 4};
 	unsigned int dataY[] = {1, 2};
-	unsigned int L;
+	unsigned int L = 0;
 	unsigned int testX = 4;
 	unsigned int testY = 5;
-	unsigned int testZ;
+	unsigned int testZ = 0;
 
 	testZ = field_add(testX, testY);
 	printf("%d + %d = %d\n", testX, testY, testZ);
@@ -58,15 +58,12 @@ int main(void)
 
 unsigned int lagrange(int dataNum, unsigned int dataX[], unsigned int dataY[], GF_info GF)
 {
-	unsigned int x;
-	unsigned int l1;
-	unsigned int l2;
-	unsigned int l;
-	unsigned int L;
-	int i;
-
-	x = 0;
-	L = 0;
+	unsigned int x = 0;
+	unsigned int l1 = 0;
+	unsigned int l2 = 0;
+	unsigned int l = 0;
+	unsigned int L = 0;
+	int i = 0;
 
 	for (i = 0; i < dataNum; i++) {
 		l1 = base_poly(dataNum, i, x, dataX, GF);
@@ -80,9 +77,9 @@ unsigned int lagrange(int dataNum, unsigned int dataX[], unsigned int dataY[], G
 
 unsigned int base_poly(int dataNum, int i, unsigned int x, unsigned int dataX[], GF_info GF)
 {
-	unsigned int sub;
-	unsigned int l;
-	int j;
+	unsigned int sub = 0;
+	unsigned int l = 0;
+	int j = 0;
 
 	for (j = 0; j < dataNum; j++) {
 		if (j != i) {
@@ -110,10 +107,10 @@ unsigned int field_mul(unsigned int x, unsigned int y, GF_info GF)
 		return 0;
 	}
 
-	int i;
-	int indX;
-	int indY;
-	int indAns;
+	int i = 0;
+	int indX = 0;
+	int indY = 0;
+	int indAns = 0;
 
 	for (i = 1; i < FIELD_SIZE; i++) {
 		if (x == GF.index[i]) {
@@ -148,10 +145,10 @@ unsigned int field_div(unsigned int x, unsigned int y, GF_info GF)
 		return EXIT_FAILURE;
 	}
 
-	int i;
-	int indX;
-	int indY;
-	int indAns;
+	int i = 0;
+	int indX = 0;
+	int indY = 0;
+	int indAns = 0;
 
 	for (i = 1; i < FIELD_SIZE; i++) {
 		if (x == GF.index[i]) {
