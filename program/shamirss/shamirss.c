@@ -31,27 +31,12 @@ int main(void)
 {
 	GF_info GF = {
 		{0, 1, 2, 3, 4, 5, 6, 7},
-		{0, 1, 2, 4, 3, 6, 7, 5}};
+		{0, 1, 2, 4, 3, 6, 7, 5}
+	};
+	int k = 3;
+	int n = 4;
 	int dataNum = 0;
-	unsigned int dataX[] = {1, 4};
-	unsigned int dataY[] = {1, 2};
 	unsigned int L = 0;
-	unsigned int testX = 4;
-	unsigned int testY = 5;
-	unsigned int testZ = 0;
-
-	testZ = field_add(testX, testY);
-	printf("%d + %d = %d\n", testX, testY, testZ);
-	testZ = field_sub(testX, testY);
-	printf("%d - %d = %d\n", testX, testY, testZ);
-	testZ = field_mul(testX, testY, GF);
-	printf("%d * %d = %d\n", testX, testY, testZ);
-	testZ = field_div(testX, testY, GF);
-	printf("%d / %d = %d\n", testX, testY, testZ);
-
-	dataNum = sizeof(dataX) / sizeof(dataX[0]);
-	L = lagrange(dataNum, dataX, dataY, GF);
-	printf("L = %d\n", L);
 
 	return 0;
 }
