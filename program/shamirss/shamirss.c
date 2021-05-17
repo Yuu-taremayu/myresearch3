@@ -56,6 +56,8 @@ int main(void)
 	return 0;
 }
 
+/* lagrange interpolation on GF(extension field) */
+/* each operations what is used here is shown at "field_***" functions */
 unsigned int lagrange(int dataNum, unsigned int dataX[], unsigned int dataY[], GF_info GF)
 {
 	unsigned int x = 0;
@@ -75,6 +77,8 @@ unsigned int lagrange(int dataNum, unsigned int dataX[], unsigned int dataY[], G
 	return L;
 }
 
+/* calculation base polynomial for lagrange interpolation */
+/* each operations what is used here is shown at "field_***" functions */
 unsigned int base_poly(int dataNum, int i, unsigned int x, unsigned int dataX[], GF_info GF)
 {
 	unsigned int sub = 0;
@@ -91,16 +95,23 @@ unsigned int base_poly(int dataNum, int i, unsigned int x, unsigned int dataX[],
 	return l;
 }
 
+/* basic operations */
+/* addition on GF(extension field) */
+/* xor and bit mask*/
 unsigned int field_add(unsigned int x, unsigned int y)
 {
 	return (x ^ y) & BIT_MASK;
 }
 
+/* subtraction on GF(extension field) */
+/* the same as field_add() */
 unsigned int field_sub(unsigned int x, unsigned int y)
 {
 	return (x ^ y) & BIT_MASK;
 }
 
+/* multiplication on GF(extension field) */
+/* convert vector to exponentiation, calc mod and reconvert */
 unsigned int field_mul(unsigned int x, unsigned int y, GF_info GF)
 {
 	if (x == 0 || y == 0) {
@@ -136,6 +147,8 @@ unsigned int field_mul(unsigned int x, unsigned int y, GF_info GF)
 	return EXIT_FAILURE;
 }
 
+/* division on GF(extension field) */
+/* convert vector to exponentiation, calc mod and reconvert */
 unsigned int field_div(unsigned int x, unsigned int y, GF_info GF)
 {
 	if (x == 0) {
