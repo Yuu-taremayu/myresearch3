@@ -17,9 +17,18 @@ typedef const struct GF_info {
 	unsigned int index[FIELD_SIZE];
 } GF_info;
 
+/* parameters of Secret Sharing */
+typedef const struct SS_param {
+	int k;
+	int n;
+} SS_param;
+
 /* generating functions to prepare secret sharing */
 void generate_server_id(unsigned int *serverId, int n);
-void generate_polynomial(unsigned int *poly, int k);
+void generate_polynomial(unsigned int *poly, unsigned int secret, int k);
+
+/* create shares */
+void create_shares(unsigned int *serverId, unsigned int *poly, unsigned int *shares, SS_param SS, GF_info GF);
 
 /* lagrange interpolation */
 unsigned int lagrange(int dataNum, unsigned int dataX[], unsigned int dataY[], GF_info GF);
@@ -37,21 +46,28 @@ int main(void)
 		{0, 1, 2, 3, 4, 5, 6, 7},
 		{0, 1, 2, 4, 3, 6, 7, 5}
 	};
-	int k = 3;
-	int n = 4;
-	unsigned int *serverId;
-	unsigned int *poly;
-	int dataNum = 0;
+	SS_param SS = {2, 2};
+	unsigned int *serverId = NULL;
+	unsigned int *poly = NULL;
+	unsigned int *shares = NULL;
+	unsigned int secret = 5;
 	unsigned int L = 0;
 
-	serverId = (unsigned int *)malloc(sizeof(unsigned int) * n);
-	poly = (unsigned int *)malloc(sizeof(unsigned int) * k);
+	printf("The secret is %d\n", secret);
+	serverId = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
+	poly = (unsigned int *)malloc(sizeof(unsigned int) * (SS.k));
+	shares = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
 
-	generate_server_id(serverId, n);
-	generate_polynomial(poly, k);
+	generate_server_id(serverId, SS.n);
+	generate_polynomial(poly, secret, SS.k);
+	create_shares(serverId, poly, shares, SS, GF);
+
+	L = lagrange(SS.n, serverId, shares, GF);
+	printf("L = %d\n", L);
 
 	free(serverId);
 	free(poly);
+	free(shares);
 
 	return 0;
 }
@@ -63,16 +79,55 @@ void generate_server_id(unsigned int *serverId, int n)
 
 	for (i = 0; i < n; i++) {
 		serverId[i] = i + 1;
+		printf("serverId[%d] = %d\n", i, serverId[i]);
 	}
 }
 
 /* prepare polynomial for generating shares */
-void generate_polynomial(unsigned int *poly, int k)
+void generate_polynomial(unsigned int *poly, unsigned int secret, int k)
 {
 	int i = 0;
 
-	for (i = 0; i < k; i++) {
-		poly[i] = rand() % 2;
+	poly[0] = secret;
+	for (i = 1; i < k; i++) {
+		poly[i] = rand() % FIELD_SIZE;
+		printf("poly[%d] = %d\n", i, poly[i]);
+	}
+}
+
+/* create shares */
+void create_shares(unsigned int *serverId, unsigned int *poly, unsigned int *shares, SS_param SS, GF_info GF)
+{
+	int i = 0;
+	int j = 0;
+	unsigned int t1 = 0;
+	unsigned int t2 = 1;
+	unsigned int t3 = 1;
+
+	for (i = 0; i < SS.n; i++) {
+		for (j = 0; j < SS.k; j++) {
+
+			/*
+			for (k = 0; k < SS.k; k++) {
+				t2 = field_mul(t2, serverId[i], GF);
+				printf("k = %d\n", k);
+				printf("t2 = %d\n", t2);
+			}
+			*/
+
+			t2 = field_mul(t3, poly[j], GF);
+			t1 = field_add(t1, t2);
+
+			/*
+			printf("%d %d %d\n", t1, t2, t3);
+			*/
+
+			t3 = field_mul(t3, serverId[i], GF);
+		}
+		shares[i] = t1;
+		printf("shares[%d] = %d\n", i, shares[i]);
+		t1 = 0;
+		t3 = 1;
 	}
 }
 
@@ -90,7 +145,13 @@ unsigned int lagrange(int dataNum, unsigned int dataX[], unsigned int dataY[], G
 	for (i = 0; i < dataNum; i++) {
 		l1 = base_poly(dataNum, i, x, dataX, GF);
 		l2 = base_poly(dataNum, i, dataX[i], dataX, GF);
+		/*
+		printf("l1 = %d, l2 = %d\n", l1, l2);
+		*/
 		l = field_div(l1, l2, GF);
+		/*
+		printf("l = %d\n", l);
+		*/
 		L = field_add(L, field_mul(dataY[i], l, GF));
 	}
 
@@ -102,7 +163,7 @@ unsigned int lagrange(int dataNum, unsigned int dataX[], unsigned int dataY[], G
 unsigned int base_poly(int dataNum, int i, unsigned int x, unsigned int dataX[], GF_info GF)
 {
 	unsigned int sub = 0;
-	unsigned int l = 0;
+	unsigned int l = 1;
 	int j = 0;
 
 	for (j = 0; j < dataNum; j++) {
@@ -151,11 +212,6 @@ unsigned int field_mul(unsigned int x, unsigned int y, GF_info GF)
 			indY = i - 1;
 		}
 	}
-	/* debug lines */
-	/*
-	printf("indX = %d\n", indX);
-	printf("indY = %d\n", indY);
-	*/
 	indAns = (indX + indY) % (FIELD_SIZE - 1);
 
 	for (i = 1; i < FIELD_SIZE; i++) {
@@ -191,12 +247,7 @@ unsigned int field_div(unsigned int x, unsigned int y, GF_info GF)
 			indY = i - 1;
 		}
 	}
-	/* debug lines */
-	/*
-	printf("indX = %d\n", indX);
-	printf("indY = %d\n", indY);
-	*/
-	indAns = (indX * ((FIELD_SIZE - 1) - indY)) % (FIELD_SIZE - 1);
+	indAns = (indX + ((FIELD_SIZE - 1) - indY)) % (FIELD_SIZE - 1);
 
 	for (i = 1; i < FIELD_SIZE; i++) {
 		if (GF.index[indAns + 1] == GF.vector[i]) {
