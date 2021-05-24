@@ -42,11 +42,11 @@ unsigned int field_div(unsigned int x, unsigned int y, GF_info GF);
 
 int main(void)
 {
-	GF_info GF = {
+	const GF_info GF = {
 		{0, 1, 2, 3, 4, 5, 6, 7},
 		{0, 1, 2, 4, 3, 6, 7, 5}
 	};
-	SS_param SS = {2, 2};
+	const SS_param SS = {3, 4};
 	unsigned int *serverId = NULL;
 	unsigned int *poly = NULL;
 	unsigned int *shares = NULL;
