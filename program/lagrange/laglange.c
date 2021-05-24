@@ -128,7 +128,10 @@ unsigned int field_div(unsigned int x, unsigned int y, GF_info GF)
 	printf("indX = %d\n", indX);
 	printf("indY = %d\n", indY);
 	*/
-	indAns = (indX * ((FIELD_SIZE - 1) - indY)) % (FIELD_SIZE - 1);
+	indAns = (indX + ((FIELD_SIZE - 1) - indY)) % (FIELD_SIZE - 1);
+	/*
+	printf("indAns = %d\n", indAns);
+	*/
 
 	for (i = 1; i < FIELD_SIZE; i++) {
 		if (GF.index[indAns + 1] == GF.vector[i]) {
@@ -164,7 +167,7 @@ unsigned int lagrange(int dataNum, unsigned int dataX[], unsigned int dataY[], G
 unsigned int base_poly(int dataNum, int i, unsigned int x, unsigned int dataX[], GF_info GF)
 {
 	unsigned int sub;
-	unsigned int l;
+	unsigned int l = 1;
 	int j;
 
 	for (j = 0; j < dataNum; j++) {
