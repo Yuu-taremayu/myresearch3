@@ -24,7 +24,8 @@ void circuit(int input)
 			//printf("%d\n", i);
 			if (i == 0) {
 				if (poly[i] == 1) {
-					s[i] = XOR(in[j], out);
+					//s[i] = XOR(in[j], out);
+					s[i] = in[j] ^ out;
 				}
 				else {
 					s[i] = in[j];
@@ -32,7 +33,8 @@ void circuit(int input)
 			}
 			else {
 				if (poly[i] == 1) {
-					s[i] = XOR(s[i-1], out);
+					//s[i] = XOR(s[i-1], out);
+					s[i] = s[i-1] ^ out;
 				}
 				else {
 					s[i] = s[i-1];
@@ -40,9 +42,11 @@ void circuit(int input)
 			}
 			//printf("%d\n", s[i-1]);
 		}
+		/*
 		puts("");
 		printf("%d\n", out);
 		puts("");
+		*/
 	}
 }
 
