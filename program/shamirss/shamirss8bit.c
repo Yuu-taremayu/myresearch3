@@ -12,19 +12,19 @@
 #define BIT_MASK 0xff
 
 /* structure of GF */
-typedef const struct GF_info {
-	unsigned int vector[FIELD_SIZE];
-	unsigned int index[FIELD_SIZE];
+typedef struct GF_info {
+	unsigned int *vector;
+	unsigned int *index;
 } GF_info;
 
 /* parameters of Secret Sharing */
-typedef const struct SS_param {
+typedef struct SS_param {
 	int k;
 	int n;
 } SS_param;
 
 /* set GF info that index and vector */
-void set_GF_info(unsigned int *vector, unsigned int *index);
+void set_GF_info(unsigned int *index, unsigned int *vector);
 
 /* generating functions to prepare secret sharing */
 void generate_server_id(unsigned int *serverId, int n);
@@ -45,16 +45,20 @@ unsigned int field_div(unsigned int x, unsigned int y, GF_info GF);
 
 int main(void)
 {
-	const GF_info GF = {
-		{0, 1, 2, 3, 4, 5, 6, 7},
-		{0, 1, 2, 4, 3, 6, 7, 5}
-	};
-	const SS_param SS = {3, 4};
+	const SS_param SS = {6, 9};
 	unsigned int *serverId = NULL;
 	unsigned int *poly = NULL;
 	unsigned int *shares = NULL;
-	unsigned int secret = 5;
+	unsigned int secret = 108;
 	unsigned int L = 0;
+	unsigned int *index = NULL;
+	unsigned int *vector = NULL;
+
+	index = (unsigned int *)malloc(sizeof(unsigned int) * FIELD_SIZE);
+	vector = (unsigned int *)malloc(sizeof(unsigned int) * FIELD_SIZE);
+
+	set_GF_info(index, vector);
+	GF_info GF = {index, vector};
 
 	printf("The secret is %d\n", secret);
 	serverId = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
@@ -73,6 +77,61 @@ int main(void)
 	free(shares);
 
 	return 0;
+}
+
+/* set index and vector of elements on GF */
+void set_GF_info(unsigned int *index, unsigned int *vector)
+{
+	unsigned int gene_poly[8+1] = {1, 0, 1, 1, 1, 0, 0, 0, 1};
+	unsigned int mem[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+	unsigned int in = 0, out = 0;
+	int i = 0, j = 0, k = 0;
+	int temp = 0;
+
+	for (i = 0; i < (FIELD_SIZE - 1); i++) {
+		for (j = 0; j < (FIELD_SIZE - 1); j++) {
+			if (i == j) {
+				in = 1;
+			}
+			else {
+				in = 0;
+			}
+
+			out = mem[7];
+			for (k = (8 - 1); k >= 0; k--) {
+				if (k == 0) {
+					if (gene_poly[0] == 1) {
+						mem[0] = in ^ out;
+					}
+					else {
+						mem[0] = in;
+					}
+				}
+				else {
+					if (gene_poly[k] == 1) {
+						mem[k] = mem[k - 1] ^ out;
+					}
+					else {
+						mem[k] = mem[k - 1];
+					}
+				}
+			}
+		}
+		temp = 0;
+		for (j = 0; j < 8; j++) {
+			temp = temp + (mem[j] << j);
+		}
+		vector[(FIELD_SIZE - 1) - i] = temp;
+
+		index[(FIELD_SIZE - 1) - i] = (FIELD_SIZE - 2) - i;
+
+		for (j = 0; j < 8; j++) {
+			mem[j] = 0;
+		}
+	}
+	index[0] = 0;
+	vector[0] = 0;
+	
 }
 
 /* prepare server IDs that are all different */
