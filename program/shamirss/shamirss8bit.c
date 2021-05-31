@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 /* Galois field size */
 /* 2^8 */
@@ -13,8 +14,8 @@
 
 /* structure of GF */
 typedef struct GF_info {
-	unsigned int *vector;
 	unsigned int *index;
+	unsigned int *vector;
 } GF_info;
 
 /* parameters of Secret Sharing */
@@ -45,7 +46,7 @@ unsigned int field_div(unsigned int x, unsigned int y, GF_info GF);
 
 int main(void)
 {
-	const SS_param SS = {6, 9};
+	const SS_param SS = {20, 30};
 	unsigned int *serverId = NULL;
 	unsigned int *poly = NULL;
 	unsigned int *shares = NULL;
@@ -54,11 +55,20 @@ int main(void)
 	unsigned int *index = NULL;
 	unsigned int *vector = NULL;
 
+	srand((unsigned)time(NULL));
+	//srand(0);
+
 	index = (unsigned int *)malloc(sizeof(unsigned int) * FIELD_SIZE);
 	vector = (unsigned int *)malloc(sizeof(unsigned int) * FIELD_SIZE);
 
 	set_GF_info(index, vector);
+	//set_GF_info(vector, index);
 	GF_info GF = {index, vector};
+	/*
+	for (int i = 0; i < FIELD_SIZE; i++) {
+		printf("%d %x\n", GF.index[i], GF.vector[i]);
+	}
+	*/
 
 	printf("The secret is %d\n", secret);
 	serverId = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
@@ -86,7 +96,7 @@ void set_GF_info(unsigned int *index, unsigned int *vector)
 	unsigned int mem[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 	unsigned int in = 0, out = 0;
 	int i = 0, j = 0, k = 0;
-	int temp = 0;
+	unsigned int temp = 0;
 
 	for (i = 0; i < (FIELD_SIZE - 1); i++) {
 		for (j = 0; j < (FIELD_SIZE - 1); j++) {
@@ -151,6 +161,7 @@ void generate_polynomial(unsigned int *poly, unsigned int secret, int k)
 	int i = 0;
 
 	poly[0] = secret;
+	printf("poly[%d] = %d\n", 0, poly[0]);
 	for (i = 1; i < k; i++) {
 		poly[i] = rand() % FIELD_SIZE;
 		printf("poly[%d] = %d\n", i, poly[i]);
@@ -189,6 +200,7 @@ void create_shares(unsigned int *serverId, unsigned int *poly, unsigned int *sha
 		shares[i] = t1;
 		printf("shares[%d] = %d\n", i, shares[i]);
 		t1 = 0;
+		t2 = 1;
 		t3 = 1;
 	}
 }
@@ -267,15 +279,16 @@ unsigned int field_mul(unsigned int x, unsigned int y, GF_info GF)
 	int indAns = 0;
 
 	for (i = 1; i < FIELD_SIZE; i++) {
-		if (x == GF.index[i]) {
+		if (x == GF.vector[i]) {
 			indX = i - 1;
 		}
-		if (y == GF.index[i]) {
+		if (y == GF.vector[i]) {
 			indY = i - 1;
 		}
 	}
 	indAns = (indX + indY) % (FIELD_SIZE - 1);
 
+	/*
 	for (i = 1; i < FIELD_SIZE; i++) {
 		if (GF.index[indAns + 1] == GF.vector[i]) {
 			return GF.vector[i];
@@ -283,6 +296,8 @@ unsigned int field_mul(unsigned int x, unsigned int y, GF_info GF)
 	}
 
 	return EXIT_FAILURE;
+	*/
+	return GF.vector[indAns + 1];
 }
 
 /* division on GF(extension field) */
@@ -301,16 +316,17 @@ unsigned int field_div(unsigned int x, unsigned int y, GF_info GF)
 	int indY = 0;
 	int indAns = 0;
 
-	for (i = 1; i < FIELD_SIZE; i++) {
-		if (x == GF.index[i]) {
+	for (i = 0; i < FIELD_SIZE; i++) {
+		if (x == GF.vector[i]) {
 			indX = i - 1;
 		}
-		if (y == GF.index[i]) {
+		if (y == GF.vector[i]) {
 			indY = i - 1;
 		}
 	}
 	indAns = (indX + ((FIELD_SIZE - 1) - indY)) % (FIELD_SIZE - 1);
 
+	/*
 	for (i = 1; i < FIELD_SIZE; i++) {
 		if (GF.index[indAns + 1] == GF.vector[i]) {
 			return GF.vector[i];
@@ -318,5 +334,7 @@ unsigned int field_div(unsigned int x, unsigned int y, GF_info GF)
 	}
 
 	return EXIT_FAILURE;
+	*/
+	return GF.vector[indAns + 1];
 }
 
