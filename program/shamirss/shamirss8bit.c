@@ -49,22 +49,19 @@ int main(void)
 	unsigned int *GF_vector = NULL;
 
 	srand((unsigned)time(NULL));
-	//srand(0);
-
-	GF_vector = (unsigned int *)malloc(sizeof(unsigned int) * FIELD_SIZE);
-
-	set_GF_info(GF_vector);
-	//set_GF_info(GF_vector, index);
-	/*
-	for (int i = 0; i < FIELD_SIZE; i++) {
-		printf("%d %x\n", GF.index[i], GF.GF_vector[i]);
-	}
-	*/
 
 	printf("The secret is %d\n", secret);
 	serverId = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
 	poly = (unsigned int *)malloc(sizeof(unsigned int) * (SS.k));
 	shares = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
+	GF_vector = (unsigned int *)malloc(sizeof(unsigned int) * FIELD_SIZE);
+
+	set_GF_info(GF_vector);
+	/*
+	for (int i = 0; i < FIELD_SIZE; i++) {
+		printf("%d %x\n", GF.index[i], GF.GF_vector[i]);
+	}
+	*/
 
 	generate_server_id(serverId, SS.n);
 	generate_polynomial(poly, secret, SS.k);
@@ -235,7 +232,7 @@ unsigned int field_sub(unsigned int x, unsigned int y)
 }
 
 /* multiplication on GF(extension field) */
-/* convert GF_vector to exponentiation, calc mod and reconvert */
+/* convert vector to exponentiation, calc mod and reconvert */
 unsigned int field_mul(unsigned int x, unsigned int y, unsigned int *GF_vector)
 {
 	if (x == 0 || y == 0) {
@@ -261,7 +258,7 @@ unsigned int field_mul(unsigned int x, unsigned int y, unsigned int *GF_vector)
 }
 
 /* division on GF(extension field) */
-/* convert GF_vector to exponentiation, calc mod and reconvert */
+/* convert vector to exponentiation, calc mod and reconvert */
 unsigned int field_div(unsigned int x, unsigned int y, unsigned int *GF_vector)
 {
 	if (x == 0) {
