@@ -179,22 +179,8 @@ void create_shares(unsigned int *serverId, unsigned int *poly, unsigned int *sha
 
 	for (i = 0; i < SS.n; i++) {
 		for (j = 0; j < SS.k; j++) {
-
-			/*
-			for (k = 0; k < SS.k; k++) {
-				t2 = field_mul(t2, serverId[i], GF);
-				printf("k = %d\n", k);
-				printf("t2 = %d\n", t2);
-			}
-			*/
-
 			t2 = field_mul(t3, poly[j], GF);
 			t1 = field_add(t1, t2);
-
-			/*
-			printf("%d %d %d\n", t1, t2, t3);
-			*/
-
 			t3 = field_mul(t3, serverId[i], GF);
 		}
 		shares[i] = t1;
@@ -219,13 +205,7 @@ unsigned int lagrange(int dataNum, unsigned int dataX[], unsigned int dataY[], G
 	for (i = 0; i < dataNum; i++) {
 		l1 = base_poly(dataNum, i, x, dataX, GF);
 		l2 = base_poly(dataNum, i, dataX[i], dataX, GF);
-		/*
-		printf("l1 = %d, l2 = %d\n", l1, l2);
-		*/
 		l = field_div(l1, l2, GF);
-		/*
-		printf("l = %d\n", l);
-		*/
 		L = field_add(L, field_mul(dataY[i], l, GF));
 	}
 
@@ -288,15 +268,6 @@ unsigned int field_mul(unsigned int x, unsigned int y, GF_info GF)
 	}
 	indAns = (indX + indY) % (FIELD_SIZE - 1);
 
-	/*
-	for (i = 1; i < FIELD_SIZE; i++) {
-		if (GF.index[indAns + 1] == GF.vector[i]) {
-			return GF.vector[i];
-		}
-	}
-
-	return EXIT_FAILURE;
-	*/
 	return GF.vector[indAns + 1];
 }
 
@@ -326,15 +297,6 @@ unsigned int field_div(unsigned int x, unsigned int y, GF_info GF)
 	}
 	indAns = (indX + ((FIELD_SIZE - 1) - indY)) % (FIELD_SIZE - 1);
 
-	/*
-	for (i = 1; i < FIELD_SIZE; i++) {
-		if (GF.index[indAns + 1] == GF.vector[i]) {
-			return GF.vector[i];
-		}
-	}
-
-	return EXIT_FAILURE;
-	*/
 	return GF.vector[indAns + 1];
 }
 
