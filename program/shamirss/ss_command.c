@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #define _GNU_SOURCE
 #include <getopt.h>
@@ -12,6 +13,10 @@ static struct option longopts[] = {
 	{"help",	no_argument,		NULL,	'h'},
 	{0,		0,			0,	0}
 };
+
+/* operation of secret sharing */
+void split(char *path);
+void combine(char *path[], int shareNum);
 
 int main(int argc, char *argv[])
 {
@@ -33,9 +38,13 @@ int main(int argc, char *argv[])
 	}
 
 	if (strcmp(mode_flag, "split") == 0) {
-		printf("%s\n", mode_flag);
+		printf("mode:%s\n", mode_flag);
 		if (optind == argc - 1) {
 			printf("%s\n", argv[optind]);
+			char *path = NULL;
+			path = (char *)malloc(sizeof(char) * strlen(argv[optind]));
+			strcpy(path, argv[optind]);
+			split(path);
 		}
 		else {
 			fprintf(stderr, USAGE, argv[0]);
@@ -43,13 +52,22 @@ int main(int argc, char *argv[])
 		}
 	}
 	else if (strcmp(mode_flag, "combine") == 0) {
-		printf("%s\n", mode_flag);
+		printf("mode:%s\n", mode_flag);
 		if (optind == argc) {
 			fprintf(stderr, USAGE, argv[0]);
 			exit(EXIT_FAILURE);
 		}
-		for (int i = optind; i < argc; i++) {
-			printf("%s\n", argv[i]);
+		else {
+			for (int i = optind; i < argc; i++) {
+				printf("%s\n", argv[i]);
+			}
+			char **path = NULL;
+			path = (char **)malloc(sizeof(char *) * (argc - optind));
+			for (int i = 0; i < (argc - optind); i++) {
+				path[i] = (char *)malloc(sizeof(char) * strlen(argv[optind + i]));
+				strcpy(path[i], argv[optind + i]);
+			}
+			combine(path, (argc - optind));
 		}
 	}
 	else {
@@ -58,4 +76,40 @@ int main(int argc, char *argv[])
 	}
 
 	return 0;
+}
+
+/* split step in secret sharing */
+void split(char *path)
+{
+	FILE *fp;
+	char c;
+
+	fp = fopen(path, "r");
+	if (fp == NULL) {
+		fprintf(stderr, "error:%s", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	while ((c = getc(fp)) != EOF) {
+		printf("%c", c);
+	}
+	printf("Split success\n");
+	fclose(fp);
+}
+
+/* combine step in secret sharing */
+void combine(char *path[], int shareNum)
+{
+	FILE *fp;
+
+	for (int i = 0; i < shareNum; i++) {
+		fp = fopen(path[i], "r");
+		if (fp == NULL) {
+			fprintf(stderr, "error:%s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+		fclose(fp);
+	}
+
+	printf("Combine success\n");
 }
