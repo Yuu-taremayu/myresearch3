@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #define _GNU_SOURCE
 #include <getopt.h>
@@ -82,17 +84,27 @@ int main(int argc, char *argv[])
 void split(char *path)
 {
 	FILE *fp;
+	int fd;
 	char c;
 
-	fp = fopen(path, "r");
+	fd = open(path, O_RDONLY);
+	if (fd == -1) {
+		fprintf(stderr, "error:%s", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	fp = fdopen(fd, "r");
 	if (fp == NULL) {
 		fprintf(stderr, "error:%s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
+	/* go to shamir's secret sharing */
+	/*
 	while ((c = getc(fp)) != EOF) {
 		printf("%c", c);
 	}
+	*/
 	printf("Split success\n");
 	fclose(fp);
 }
@@ -101,13 +113,22 @@ void split(char *path)
 void combine(char *path[], int shareNum)
 {
 	FILE *fp;
+	int fd;
+	int i;
 
-	for (int i = 0; i < shareNum; i++) {
-		fp = fopen(path[i], "r");
+	for (i = 0; i < shareNum; i++) {
+		fd = open(path[i], O_RDONLY);
+		if (fd == -1) {
+			fprintf(stderr, "error:%s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+
+		fp = fdopen(fd, "r");
 		if (fp == NULL) {
 			fprintf(stderr, "error:%s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
+
 		fclose(fp);
 	}
 
