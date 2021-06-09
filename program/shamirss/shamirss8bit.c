@@ -2,6 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <errno.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#define _GNU_SOURCE
+#include <getopt.h>
+
+/* define message of usage */
+#define USAGE "Usage: %s [--mode=m] [FILE ...]\n"
 
 /* Galois field size */
 /* 2^8 */
@@ -18,8 +27,19 @@ typedef struct SS_param {
 	int n;
 } SS_param;
 
+/* struct of options */
+static struct option longopts[] = {
+	{"mode",	required_argument,	NULL,	'm'},
+	{"help",	no_argument,		NULL,	'h'},
+	{0,		0,			0,	0}
+};
+
 /* set GF info that GF vector */
 void set_GF_info(unsigned int *GF_vector);
+
+/* operations of secret sharing */
+void split(char *path);
+void combine(char *path[], int shareNum);
 
 /* generating functions to prepare secret sharing */
 void generate_server_id(unsigned int *serverId, int n);
@@ -38,7 +58,7 @@ unsigned int field_sub(unsigned int x, unsigned int y);
 unsigned int field_mul(unsigned int x, unsigned int y, unsigned int *GF_vector);
 unsigned int field_div(unsigned int x, unsigned int y, unsigned int *GF_vector);
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	const SS_param SS = {20, 30};
 	unsigned int *serverId = NULL;
@@ -47,8 +67,62 @@ int main(void)
 	unsigned int secret = 108;
 	unsigned int L = 0;
 	unsigned int *GF_vector = NULL;
+	int opt;
+	char *mode_flag = NULL;
 
 	srand((unsigned)time(NULL));
+
+	while ((opt = getopt_long(argc, argv, "hm:", longopts, NULL)) != -1) {
+		switch (opt) {
+			case 'm':
+				mode_flag = optarg;
+				break;
+			case 'h':
+				fprintf(stdout, USAGE, argv[0]);
+				exit(EXIT_SUCCESS);
+			case '?':
+				fprintf(stderr, USAGE, argv[0]);
+				exit(EXIT_FAILURE);
+		}
+	}
+
+	if (strcmp(mode_flag, "split") == 0) {
+		printf("mode:%s\n", mode_flag);
+		if (optind == argc - 1) {
+			printf("%s\n", argv[optind]);
+			char *path = NULL;
+			path = (char *)malloc(sizeof(char) * strlen(argv[optind]));
+			strcpy(path, argv[optind]);
+			split(path);
+		}
+		else {
+			fprintf(stderr, USAGE, argv[0]);
+			exit(EXIT_FAILURE);
+		}
+	}
+	else if (strcmp(mode_flag, "combine") == 0) {
+		printf("mode:%s\n", mode_flag);
+		if (optind == argc) {
+			fprintf(stderr, USAGE, argv[0]);
+			exit(EXIT_FAILURE);
+		}
+		else {
+			for (int i = optind; i < argc; i++) {
+				printf("%s\n", argv[i]);
+			}
+			char **path = NULL;
+			path = (char **)malloc(sizeof(char *) * (argc - optind));
+			for (int i = 0; i < (argc - optind); i++) {
+				path[i] = (char *)malloc(sizeof(char) * strlen(argv[optind + i]));
+				strcpy(path[i], argv[optind + i]);
+			}
+			combine(path, (argc - optind));
+		}
+	}
+	else {
+		fprintf(stderr, USAGE, argv[0]);
+		exit(EXIT_FAILURE);
+	}
 
 	printf("The secret is %d\n", secret);
 	serverId = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
@@ -128,6 +202,39 @@ void set_GF_info(unsigned int *GF_vector)
 	}
 	GF_vector[0] = 0;
 	
+}
+
+/* split secret and create shares */
+void split(char *path)
+{
+	FILE *fp = NULL;
+	int fd = 0;
+	char c;
+
+	fd = open(path, O_RDONLY);
+	if (fd == -1) {
+		fprintf(stderr, "err:%s", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	fp = fdopen(fd, "r");
+	if (fp == NULL) {
+		fprintf(stderr, "err:%s", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	while ((c = getc(fp)) != EOF) {
+		printf("%c", c);
+	}
+	fclose(fp);
+}
+
+/* combine shares and restore secret */
+void combine(char *path[], int shareNum)
+{
+	FILE *fp = NULL;
+	int fd = 0;
+	int i = 0;
 }
 
 /* prepare server IDs that are all different */
