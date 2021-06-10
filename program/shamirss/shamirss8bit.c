@@ -34,12 +34,14 @@ static struct option longopts[] = {
 	{0,		0,			0,	0}
 };
 
+const SS_param SS = {20, 30};
+
 /* set GF info that GF vector */
 void set_GF_info(unsigned int *GF_vector);
 
 /* operations of secret sharing */
-void split(char *path);
-void combine(char *path[], int shareNum);
+void split(char *path, unsigned int *GF_vector);
+void combine(char *path[], int shareNum, unsigned int *GF_vector);
 
 /* generating functions to prepare secret sharing */
 void generate_server_id(unsigned int *serverId, int n);
@@ -60,12 +62,6 @@ unsigned int field_div(unsigned int x, unsigned int y, unsigned int *GF_vector);
 
 int main(int argc, char *argv[])
 {
-	const SS_param SS = {20, 30};
-	unsigned int *serverId = NULL;
-	unsigned int *poly = NULL;
-	unsigned int *shares = NULL;
-	unsigned int secret = 108;
-	unsigned int L = 0;
 	unsigned int *GF_vector = NULL;
 	int opt;
 	char *mode_flag = NULL;
@@ -86,6 +82,9 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	GF_vector = (unsigned int *)malloc(sizeof(unsigned int) * FIELD_SIZE);
+	set_GF_info(GF_vector);
+
 	if (strcmp(mode_flag, "split") == 0) {
 		printf("mode:%s\n", mode_flag);
 		if (optind == argc - 1) {
@@ -93,7 +92,7 @@ int main(int argc, char *argv[])
 			char *path = NULL;
 			path = (char *)malloc(sizeof(char) * strlen(argv[optind]));
 			strcpy(path, argv[optind]);
-			split(path);
+			split(path, GF_vector);
 		}
 		else {
 			fprintf(stderr, USAGE, argv[0]);
@@ -116,7 +115,7 @@ int main(int argc, char *argv[])
 				path[i] = (char *)malloc(sizeof(char) * strlen(argv[optind + i]));
 				strcpy(path[i], argv[optind + i]);
 			}
-			combine(path, (argc - optind));
+			combine(path, (argc - optind), GF_vector);
 		}
 	}
 	else {
@@ -124,29 +123,6 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	printf("The secret is %d\n", secret);
-	serverId = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
-	poly = (unsigned int *)malloc(sizeof(unsigned int) * (SS.k));
-	shares = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
-	GF_vector = (unsigned int *)malloc(sizeof(unsigned int) * FIELD_SIZE);
-
-	set_GF_info(GF_vector);
-	/*
-	for (int i = 0; i < FIELD_SIZE; i++) {
-		printf("%d %x\n", GF.index[i], GF.GF_vector[i]);
-	}
-	*/
-
-	generate_server_id(serverId, SS.n);
-	generate_polynomial(poly, secret, SS.k);
-	create_shares(serverId, poly, shares, SS, GF_vector);
-
-	L = lagrange(SS.n, serverId, shares, GF_vector);
-	printf("L = %d\n", L);
-
-	free(serverId);
-	free(poly);
-	free(shares);
 	free(GF_vector);
 
 	return 0;
@@ -205,11 +181,15 @@ void set_GF_info(unsigned int *GF_vector)
 }
 
 /* split secret and create shares */
-void split(char *path)
+void split(char *path, unsigned int *GF_vector)
 {
 	FILE *fp = NULL;
 	int fd = 0;
 	char c;
+	unsigned int *serverId = NULL;
+	unsigned int *poly = NULL;
+	unsigned int *shares = NULL;
+	unsigned int secret = 108;
 
 	fd = open(path, O_RDONLY);
 	if (fd == -1) {
@@ -223,18 +203,41 @@ void split(char *path)
 		exit(EXIT_FAILURE);
 	}
 
+	serverId = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
+	poly = (unsigned int *)malloc(sizeof(unsigned int) * (SS.k));
+	shares = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
+
+	generate_server_id(serverId, SS.n);
+	generate_polynomial(poly, secret, SS.k);
+	create_shares(serverId, poly, shares, SS, GF_vector);
+
 	while ((c = getc(fp)) != EOF) {
 		printf("%c", c);
 	}
+
+	free(serverId);
+	free(poly);
+	free(shares);
 	fclose(fp);
 }
 
 /* combine shares and restore secret */
-void combine(char *path[], int shareNum)
+void combine(char *path[], int shareNum, unsigned int *GF_vector)
 {
 	FILE *fp = NULL;
 	int fd = 0;
 	int i = 0;
+	unsigned int *serverId = NULL;
+	unsigned int *shares = NULL;
+	unsigned int secret = 0;
+
+	serverId = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
+	shares = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
+
+	secret = lagrange(SS.n, serverId, shares, GF_vector);
+
+	free(serverId);
+	free(shares);
 }
 
 /* prepare server IDs that are all different */
