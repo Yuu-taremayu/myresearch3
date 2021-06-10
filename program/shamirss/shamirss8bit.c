@@ -211,9 +211,11 @@ void split(char *path, unsigned int *GF_vector)
 	generate_polynomial(poly, secret, SS.k);
 	create_shares(serverId, poly, shares, SS, GF_vector);
 
+	/*
 	while ((c = getc(fp)) != EOF) {
 		printf("%c", c);
 	}
+	*/
 
 	free(serverId);
 	free(poly);
