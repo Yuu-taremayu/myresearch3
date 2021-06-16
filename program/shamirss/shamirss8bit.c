@@ -26,6 +26,7 @@ typedef struct SS_param {
 	int k;
 	int n;
 } SS_param;
+const SS_param SS = {2, 3};
 
 /* struct of options */
 static struct option longopts[] = {
@@ -34,7 +35,6 @@ static struct option longopts[] = {
 	{0,		0,			0,	0}
 };
 
-const SS_param SS = {20, 30};
 
 /* set GF info that GF vector */
 void set_GF_info(unsigned int *GF_vector);
@@ -67,6 +67,12 @@ int main(int argc, char *argv[])
 	char *mode_flag = NULL;
 
 	srand((unsigned)time(NULL));
+
+	if (argc < 2) {
+		fprintf(stderr, "Too a few arguments\n");
+		fprintf(stderr, USAGE, argv[0]);
+		exit(EXIT_FAILURE);
+	}
 
 	while ((opt = getopt_long(argc, argv, "hm:", longopts, NULL)) != -1) {
 		switch (opt) {
@@ -183,13 +189,19 @@ void set_GF_info(unsigned int *GF_vector)
 /* split secret and create shares */
 void split(char *path, unsigned int *GF_vector)
 {
-	FILE *fp = NULL;
+	FILE *fp_sec = NULL;
 	int fd = 0;
 	char c;
+	char *sc = NULL;
+	int si;
 	unsigned int *serverId = NULL;
 	unsigned int *poly = NULL;
 	unsigned int *shares = NULL;
 	unsigned int secret = 108;
+	char *fileName1 = NULL;
+	FILE *fp_s1 = NULL;
+	char *txt = ".txt";
+	int newFileMode = S_IRUSR | S_IRGRP | S_IROTH;
 
 	fd = open(path, O_RDONLY);
 	if (fd == -1) {
@@ -197,8 +209,8 @@ void split(char *path, unsigned int *GF_vector)
 		exit(EXIT_FAILURE);
 	}
 
-	fp = fdopen(fd, "r");
-	if (fp == NULL) {
+	fp_sec = fdopen(fd, "r");
+	if (fp_sec == NULL) {
 		fprintf(stderr, "err:%s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
@@ -206,21 +218,48 @@ void split(char *path, unsigned int *GF_vector)
 	serverId = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
 	poly = (unsigned int *)malloc(sizeof(unsigned int) * (SS.k));
 	shares = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
+	sc = (char *)malloc(sizeof(char) * 1);
+	fileName1 = (char *)malloc(sizeof(char) * 6);
+
+	c = getc(fp_sec);
+	si = c;
+	printf("%d\n", si);
 
 	generate_server_id(serverId, SS.n);
-	generate_polynomial(poly, secret, SS.k);
+	generate_polynomial(poly, si, SS.k);
 	create_shares(serverId, poly, shares, SS, GF_vector);
 
-	/*
-	while ((c = getc(fp)) != EOF) {
-		printf("%c", c);
+	*sc = shares[0] + '0';
+
+	if (snprintf(fileName1, 6, "%s%s", "1", txt) < 5) {
+		fprintf(stderr, "err:snprintf() %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
 	}
-	*/
+
+	fd = open(fileName1, O_CREAT | O_APPEND | O_WRONLY, newFileMode);
+	if (fd == -1) {
+		fprintf(stderr, "err:open() %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	fp_s1 = fdopen(fd, "w");
+	if (fp_s1 == NULL) {
+		fprintf(stderr, "err:%s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+	
+	if (fwrite(sc, sizeof(char), 1, fp_s1) < 1) {
+		fprintf(stderr, "err:%s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
 
 	free(serverId);
 	free(poly);
 	free(shares);
-	fclose(fp);
+	free(fileName1);
+	free(sc);
+	fclose(fp_sec);
+	fclose(fp_s1);
 }
 
 /* combine shares and restore secret */
