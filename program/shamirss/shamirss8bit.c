@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 #define _GNU_SOURCE
 #include <getopt.h>
@@ -191,18 +192,18 @@ void split(char *path, int *GF_vector)
 {
 	FILE *fp_sec = NULL;
 	int fd = 0;
+	int *fd_s = NULL;
 	char c;
 	char *sc = NULL;
-	int si;
 	int *serverId = NULL;
 	int *poly = NULL;
 	int *shares = NULL;
-	int secret = 108;
-	FILE *fp_s1 = NULL;
+	int secret = 0;
+	FILE **fp_s = NULL;
 	char *fileName = NULL;
 	char *num = NULL;
 	char *txt = ".txt";
-	int newFileMode = S_IRUSR | S_IRGRP | S_IROTH;
+	int newFileMode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH;
 	int i;
 
 	fd = open(path, O_RDONLY);
@@ -223,17 +224,12 @@ void split(char *path, int *GF_vector)
 	sc = (char *)malloc(sizeof(char) * 1);
 	fileName = (char *)malloc(sizeof(char) * 6);
 	num = (char *)malloc(sizeof(char) * 1);
+	fd_s = (int *)malloc(sizeof(int) * SS.n);
+	fp_s = (FILE **)malloc(sizeof(FILE *) * SS.n);
 
 	generate_server_id(serverId, SS.n);
 
-	c = getc(fp_sec);
-	si = c;
-
-	generate_polynomial(poly, si, SS.k);
-	create_shares(serverId, poly, shares, SS, GF_vector);
-
 	for (i = 0; i < SS.n; i++) {
-		*sc = shares[i] + '0';
 		*num = i + '0';
 
 		if (snprintf(fileName, 6, "%s%s", num, txt) < 5) {
@@ -241,22 +237,54 @@ void split(char *path, int *GF_vector)
 			exit(EXIT_FAILURE);
 		}
 
-		fd = open(fileName, O_CREAT | O_APPEND | O_WRONLY, newFileMode);
-		if (fd == -1) {
+		fd_s[i] = open(fileName, O_CREAT | O_APPEND | O_WRONLY, newFileMode);
+		if (fd_s[i] == -1) {
 			fprintf(stderr, "err:open() %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 
-		fp_s1 = fdopen(fd, "w");
-		if (fp_s1 == NULL) {
-			fprintf(stderr, "err:%s\n", strerror(errno));
+		fp_s[i] = fdopen(fd_s[i], "w");
+		if (fp_s[i] == NULL) {
+			fprintf(stderr, "err:fprintf() %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
-		
-		if (fwrite(sc, sizeof(char), 1, fp_s1) < 1) {
-			fprintf(stderr, "err:%s\n", strerror(errno));
-			exit(EXIT_FAILURE);
+	}
+
+	while ((c = getc(fp_sec)) != EOF) {
+		secret = c;
+
+		generate_polynomial(poly, secret, SS.k);
+		create_shares(serverId, poly, shares, SS, GF_vector);
+
+		for (i = 0; i < SS.n; i++) {
+			*sc = shares[i] + '0';
+			
+			printf("%s\n", sc);
+			if (fputs(sc, fp_s[i]) == EOF) {
+				fprintf(stderr, "err:fputs() %s\n", strerror(errno));
+				exit(EXIT_FAILURE);
+			}
+
+			/*
+			if (fwrite(sc, sizeof(char), 1, fp_s1) < 1) {
+				fprintf(stderr, "err:fprintf() %s\n", strerror(errno));
+				exit(EXIT_FAILURE);
+			}
+			*/
+
+			/*
+			if (write(fd, sc, strlen(sc)) == -1) {
+				fprintf(stderr, "err:write() %s\n", strerror(errno));
+				exit(EXIT_FAILURE);
+			}
+			*/
+
 		}
+	}
+
+	if (close(fd) == -1) {
+		fprintf(stderr, "err:close() %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
 	}
 
 	free(serverId);
@@ -265,7 +293,7 @@ void split(char *path, int *GF_vector)
 	free(fileName);
 	free(sc);
 	fclose(fp_sec);
-	fclose(fp_s1);
+	fclose(*fp_s);
 }
 
 /* combine shares and restore secret */
