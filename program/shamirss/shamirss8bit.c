@@ -37,32 +37,32 @@ static struct option longopts[] = {
 
 
 /* set GF info that GF vector */
-void set_GF_info(unsigned int *GF_vector);
+void set_GF_info(int *GF_vector);
 
 /* operations of secret sharing */
-void split(char *path, unsigned int *GF_vector);
-void combine(char *path[], int shareNum, unsigned int *GF_vector);
+void split(char *path, int *GF_vector);
+void combine(char *path[], int shareNum, int *GF_vector);
 
 /* generating functions to prepare secret sharing */
-void generate_server_id(unsigned int *serverId, int n);
-void generate_polynomial(unsigned int *poly, unsigned int secret, int k);
+void generate_server_id(int *serverId, int n);
+void generate_polynomial(int *poly, int secret, int k);
 
 /* create shares */
-void create_shares(unsigned int *serverId, unsigned int *poly, unsigned int *shares, SS_param SS, unsigned int *GF_vector);
+void create_shares(int *serverId, int *poly, int *shares, SS_param SS, int *GF_vector);
 
 /* lagrange interpolation */
-unsigned int lagrange(int dataNum, unsigned int dataX[], unsigned int dataY[], unsigned int *GF_vector);
-unsigned int base_poly(int dataNum, int i, unsigned int x, unsigned int dataX[], unsigned int *GF_vector);
+int lagrange(int dataNum, int dataX[], int dataY[], int *GF_vector);
+int base_poly(int dataNum, int i, int x, int dataX[], int *GF_vector);
 
 /* arithmetic functions */
-unsigned int field_add(unsigned int x, unsigned int y);
-unsigned int field_sub(unsigned int x, unsigned int y);
-unsigned int field_mul(unsigned int x, unsigned int y, unsigned int *GF_vector);
-unsigned int field_div(unsigned int x, unsigned int y, unsigned int *GF_vector);
+int field_add(int x, int y);
+int field_sub(int x, int y);
+int field_mul(int x, int y, int *GF_vector);
+int field_div(int x, int y, int *GF_vector);
 
 int main(int argc, char *argv[])
 {
-	unsigned int *GF_vector = NULL;
+	int *GF_vector = NULL;
 	int opt;
 	char *mode_flag = NULL;
 
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	GF_vector = (unsigned int *)malloc(sizeof(unsigned int) * FIELD_SIZE);
+	GF_vector = (int *)malloc(sizeof(int) * FIELD_SIZE);
 	set_GF_info(GF_vector);
 
 	if (strcmp(mode_flag, "split") == 0) {
@@ -135,13 +135,13 @@ int main(int argc, char *argv[])
 }
 
 /* set index and GF_vector of elements on GF */
-void set_GF_info(unsigned int *GF_vector)
+void set_GF_info(int *GF_vector)
 {
-	unsigned int gene_poly[8+1] = {1, 0, 1, 1, 1, 0, 0, 0, 1};
-	unsigned int mem[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-	unsigned int in = 0, out = 0;
+	int gene_poly[8+1] = {1, 0, 1, 1, 1, 0, 0, 0, 1};
+	int mem[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+	int in = 0, out = 0;
 	int i = 0, j = 0, k = 0;
-	unsigned int temp = 0;
+	int temp = 0;
 
 	for (i = 0; i < (FIELD_SIZE - 1); i++) {
 		for (j = 0; j < (FIELD_SIZE - 1); j++) {
@@ -187,17 +187,17 @@ void set_GF_info(unsigned int *GF_vector)
 }
 
 /* split secret and create shares */
-void split(char *path, unsigned int *GF_vector)
+void split(char *path, int *GF_vector)
 {
 	FILE *fp_sec = NULL;
 	int fd = 0;
 	char c;
 	char *sc = NULL;
 	int si;
-	unsigned int *serverId = NULL;
-	unsigned int *poly = NULL;
-	unsigned int *shares = NULL;
-	unsigned int secret = 108;
+	int *serverId = NULL;
+	int *poly = NULL;
+	int *shares = NULL;
+	int secret = 108;
 	FILE *fp_s1 = NULL;
 	char *fileName = NULL;
 	char *num = NULL;
@@ -217,9 +217,9 @@ void split(char *path, unsigned int *GF_vector)
 		exit(EXIT_FAILURE);
 	}
 
-	serverId = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
-	poly = (unsigned int *)malloc(sizeof(unsigned int) * (SS.k));
-	shares = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
+	serverId = (int *)malloc(sizeof(int) * (SS.n));
+	poly = (int *)malloc(sizeof(int) * (SS.k));
+	shares = (int *)malloc(sizeof(int) * (SS.n));
 	sc = (char *)malloc(sizeof(char) * 1);
 	fileName = (char *)malloc(sizeof(char) * 6);
 	num = (char *)malloc(sizeof(char) * 1);
@@ -269,17 +269,17 @@ void split(char *path, unsigned int *GF_vector)
 }
 
 /* combine shares and restore secret */
-void combine(char *path[], int shareNum, unsigned int *GF_vector)
+void combine(char *path[], int shareNum, int *GF_vector)
 {
 	FILE *fp = NULL;
 	int fd = 0;
 	int i = 0;
-	unsigned int *serverId = NULL;
-	unsigned int *shares = NULL;
-	unsigned int secret = 0;
+	int *serverId = NULL;
+	int *shares = NULL;
+	int secret = 0;
 
-	serverId = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
-	shares = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
+	serverId = (int *)malloc(sizeof(int) * (SS.n));
+	shares = (int *)malloc(sizeof(int) * (SS.n));
 
 	secret = lagrange(SS.n, serverId, shares, GF_vector);
 
@@ -288,7 +288,7 @@ void combine(char *path[], int shareNum, unsigned int *GF_vector)
 }
 
 /* prepare server IDs that are all different */
-void generate_server_id(unsigned int *serverId, int n)
+void generate_server_id(int *serverId, int n)
 {
 	int i = 0;
 
@@ -299,7 +299,7 @@ void generate_server_id(unsigned int *serverId, int n)
 }
 
 /* prepare polynomial for generating shares */
-void generate_polynomial(unsigned int *poly, unsigned int secret, int k)
+void generate_polynomial(int *poly, int secret, int k)
 {
 	int i = 0;
 
@@ -312,13 +312,13 @@ void generate_polynomial(unsigned int *poly, unsigned int secret, int k)
 }
 
 /* create shares */
-void create_shares(unsigned int *serverId, unsigned int *poly, unsigned int *shares, SS_param SS, unsigned int *GF_vector)
+void create_shares(int *serverId, int *poly, int *shares, SS_param SS, int *GF_vector)
 {
 	int i = 0;
 	int j = 0;
-	unsigned int t1 = 0;
-	unsigned int t2 = 1;
-	unsigned int t3 = 1;
+	int t1 = 0;
+	int t2 = 1;
+	int t3 = 1;
 
 	for (i = 0; i < SS.n; i++) {
 		for (j = 0; j < SS.k; j++) {
@@ -336,13 +336,13 @@ void create_shares(unsigned int *serverId, unsigned int *poly, unsigned int *sha
 
 /* lagrange interpolation on GF(extension field) */
 /* each operations what is used here is shown at "field_***" functions */
-unsigned int lagrange(int dataNum, unsigned int dataX[], unsigned int dataY[], unsigned int *GF_vector)
+int lagrange(int dataNum, int dataX[], int dataY[], int *GF_vector)
 {
-	unsigned int x = 0;
-	unsigned int l1 = 0;
-	unsigned int l2 = 0;
-	unsigned int l = 0;
-	unsigned int L = 0;
+	int x = 0;
+	int l1 = 0;
+	int l2 = 0;
+	int l = 0;
+	int L = 0;
 	int i = 0;
 
 	for (i = 0; i < dataNum; i++) {
@@ -357,10 +357,10 @@ unsigned int lagrange(int dataNum, unsigned int dataX[], unsigned int dataY[], u
 
 /* calculation base polynomial for lagrange interpolation */
 /* each operations what is used here is shown at "field_***" functions */
-unsigned int base_poly(int dataNum, int i, unsigned int x, unsigned int dataX[], unsigned int *GF_vector)
+int base_poly(int dataNum, int i, int x, int dataX[], int *GF_vector)
 {
-	unsigned int sub = 0;
-	unsigned int l = 1;
+	int sub = 0;
+	int l = 1;
 	int j = 0;
 
 	for (j = 0; j < dataNum; j++) {
@@ -376,21 +376,21 @@ unsigned int base_poly(int dataNum, int i, unsigned int x, unsigned int dataX[],
 /* basic operations */
 /* addition on GF(extension field) */
 /* xor and bit mask*/
-unsigned int field_add(unsigned int x, unsigned int y)
+int field_add(int x, int y)
 {
 	return (x ^ y) & BIT_MASK;
 }
 
 /* subtraction on GF(extension field) */
 /* the same as field_add() */
-unsigned int field_sub(unsigned int x, unsigned int y)
+int field_sub(int x, int y)
 {
 	return (x ^ y) & BIT_MASK;
 }
 
 /* multiplication on GF(extension field) */
 /* convert vector to exponentiation, calc mod and reconvert */
-unsigned int field_mul(unsigned int x, unsigned int y, unsigned int *GF_vector)
+int field_mul(int x, int y, int *GF_vector)
 {
 	if (x == 0 || y == 0) {
 		return 0;
@@ -416,7 +416,7 @@ unsigned int field_mul(unsigned int x, unsigned int y, unsigned int *GF_vector)
 
 /* division on GF(extension field) */
 /* convert vector to exponentiation, calc mod and reconvert */
-unsigned int field_div(unsigned int x, unsigned int y, unsigned int *GF_vector)
+int field_div(int x, int y, int *GF_vector)
 {
 	if (x == 0) {
 		return 0;
