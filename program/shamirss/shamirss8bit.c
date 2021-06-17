@@ -198,20 +198,22 @@ void split(char *path, unsigned int *GF_vector)
 	unsigned int *poly = NULL;
 	unsigned int *shares = NULL;
 	unsigned int secret = 108;
-	char *fileName1 = NULL;
 	FILE *fp_s1 = NULL;
+	char *fileName = NULL;
+	char *num = NULL;
 	char *txt = ".txt";
 	int newFileMode = S_IRUSR | S_IRGRP | S_IROTH;
+	int i;
 
 	fd = open(path, O_RDONLY);
 	if (fd == -1) {
-		fprintf(stderr, "err:%s", strerror(errno));
+		fprintf(stderr, "err:open() %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
 	fp_sec = fdopen(fd, "r");
 	if (fp_sec == NULL) {
-		fprintf(stderr, "err:%s", strerror(errno));
+		fprintf(stderr, "err:fdopen() %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
@@ -219,44 +221,48 @@ void split(char *path, unsigned int *GF_vector)
 	poly = (unsigned int *)malloc(sizeof(unsigned int) * (SS.k));
 	shares = (unsigned int *)malloc(sizeof(unsigned int) * (SS.n));
 	sc = (char *)malloc(sizeof(char) * 1);
-	fileName1 = (char *)malloc(sizeof(char) * 6);
+	fileName = (char *)malloc(sizeof(char) * 6);
+	num = (char *)malloc(sizeof(char) * 1);
+
+	generate_server_id(serverId, SS.n);
 
 	c = getc(fp_sec);
 	si = c;
-	printf("%d\n", si);
 
-	generate_server_id(serverId, SS.n);
 	generate_polynomial(poly, si, SS.k);
 	create_shares(serverId, poly, shares, SS, GF_vector);
 
-	*sc = shares[0] + '0';
+	for (i = 0; i < SS.n; i++) {
+		*sc = shares[i] + '0';
+		*num = i + '0';
 
-	if (snprintf(fileName1, 6, "%s%s", "1", txt) < 5) {
-		fprintf(stderr, "err:snprintf() %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
+		if (snprintf(fileName, 6, "%s%s", num, txt) < 5) {
+			fprintf(stderr, "err:snprintf() %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
 
-	fd = open(fileName1, O_CREAT | O_APPEND | O_WRONLY, newFileMode);
-	if (fd == -1) {
-		fprintf(stderr, "err:open() %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
+		fd = open(fileName, O_CREAT | O_APPEND | O_WRONLY, newFileMode);
+		if (fd == -1) {
+			fprintf(stderr, "err:open() %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
 
-	fp_s1 = fdopen(fd, "w");
-	if (fp_s1 == NULL) {
-		fprintf(stderr, "err:%s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-	
-	if (fwrite(sc, sizeof(char), 1, fp_s1) < 1) {
-		fprintf(stderr, "err:%s\n", strerror(errno));
-		exit(EXIT_FAILURE);
+		fp_s1 = fdopen(fd, "w");
+		if (fp_s1 == NULL) {
+			fprintf(stderr, "err:%s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+		
+		if (fwrite(sc, sizeof(char), 1, fp_s1) < 1) {
+			fprintf(stderr, "err:%s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	free(serverId);
 	free(poly);
 	free(shares);
-	free(fileName1);
+	free(fileName);
 	free(sc);
 	fclose(fp_sec);
 	fclose(fp_s1);
