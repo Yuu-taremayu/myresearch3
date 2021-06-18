@@ -190,110 +190,120 @@ void set_GF_info(int *GF_vector)
 /* split secret and create shares */
 void split(char *path, int *GF_vector)
 {
+	/* for file IO */
 	FILE *fp_sec = NULL;
-	int fd = 0;
-	int *fd_s = NULL;
-	char c;
-	char *sc = NULL;
+	int fd_sec = 0;
+	FILE **fp_sha = NULL;
+	int *fd_sha = NULL;
+	char *fileName = NULL;
+	char *fileNum = NULL;
+	char *ext = ".txt";
+	int newFileMode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH;
+	/* for read or write */
+	char chara;
+	char *chara_sha = NULL;
+	int secret = 0;
 	int *serverId = NULL;
 	int *poly = NULL;
 	int *shares = NULL;
-	int secret = 0;
-	FILE **fp_s = NULL;
-	char *fileName = NULL;
-	char *num = NULL;
-	char *txt = ".txt";
-	int newFileMode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH;
 	int i;
 
-	fd = open(path, O_RDONLY);
-	if (fd == -1) {
+	/* open secret file */
+	fd_sec = open(path, O_RDONLY);
+	if (fd_sec == -1) {
 		fprintf(stderr, "err:open() %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
-	fp_sec = fdopen(fd, "r");
+	fp_sec = fdopen(fd_sec, "r");
 	if (fp_sec == NULL) {
 		fprintf(stderr, "err:fdopen() %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
-	serverId = (int *)malloc(sizeof(int) * (SS.n));
-	poly = (int *)malloc(sizeof(int) * (SS.k));
-	shares = (int *)malloc(sizeof(int) * (SS.n));
-	sc = (char *)malloc(sizeof(char) * 1);
-	fileName = (char *)malloc(sizeof(char) * 6);
-	num = (char *)malloc(sizeof(char) * 1);
-	fd_s = (int *)malloc(sizeof(int) * SS.n);
-	fp_s = (FILE **)malloc(sizeof(FILE *) * SS.n);
-
-	generate_server_id(serverId, SS.n);
-
+	/* create file of share */
+	/* if it already exists the same name file, return EXIT_FAILURE */
 	for (i = 0; i < SS.n; i++) {
-		*num = i + '0';
+		*fileNum = i + '0';
 
-		if (snprintf(fileName, 6, "%s%s", num, txt) < 5) {
+		if (snprintf(fileName, 6, "%s%s", fileNum, ext) < 5) {
 			fprintf(stderr, "err:snprintf() %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 
-		fd_s[i] = open(fileName, O_CREAT | O_APPEND | O_WRONLY, newFileMode);
-		if (fd_s[i] == -1) {
+		fd_sha[i] = open(fileName, O_CREAT | O_EXCL | O_APPEND | O_WRONLY, newFileMode);
+		if (fd_sha[i] == -1) {
 			fprintf(stderr, "err:open() %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 
-		fp_s[i] = fdopen(fd_s[i], "w");
-		if (fp_s[i] == NULL) {
+		fp_sha[i] = fdopen(fd_sha[i], "w");
+		if (fp_sha[i] == NULL) {
 			fprintf(stderr, "err:fprintf() %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 	}
 
-	while ((c = getc(fp_sec)) != EOF) {
-		secret = c;
+	/* dynamic memory allocation */
+	serverId = (int *)malloc(sizeof(int) * (SS.n));
+	poly = (int *)malloc(sizeof(int) * (SS.k));
+	shares = (int *)malloc(sizeof(int) * (SS.n));
+	chara_sha = (char *)malloc(sizeof(char) * 1);
+	fileName = (char *)malloc(sizeof(char) * 6);
+	fileNum = (char *)malloc(sizeof(char) * 1);
+	fp_sha = (FILE **)malloc(sizeof(FILE *) * SS.n);
+	fd_sha = (int *)malloc(sizeof(int) * SS.n);
 
+	generate_server_id(serverId, SS.n);
+
+	/* read a byte, then create and write shares*/
+	while ((chara = getc(fp_sec)) != EOF) {
+		secret = chara;
 		generate_polynomial(poly, secret, SS.k);
 		create_shares(serverId, poly, shares, SS, GF_vector);
 
 		for (i = 0; i < SS.n; i++) {
-			*sc = shares[i] + '0';
+			*chara_sha = shares[i] + '0';
 			
-			printf("%s\n", sc);
-			if (fputs(sc, fp_s[i]) == EOF) {
+			if (fputs(chara_sha, fp_sha[i]) == EOF) {
 				fprintf(stderr, "err:fputs() %s\n", strerror(errno));
 				exit(EXIT_FAILURE);
 			}
-
-			/*
-			if (fwrite(sc, sizeof(char), 1, fp_s1) < 1) {
-				fprintf(stderr, "err:fprintf() %s\n", strerror(errno));
-				exit(EXIT_FAILURE);
-			}
-			*/
-
-			/*
-			if (write(fd, sc, strlen(sc)) == -1) {
-				fprintf(stderr, "err:write() %s\n", strerror(errno));
-				exit(EXIT_FAILURE);
-			}
-			*/
-
 		}
 	}
 
-	if (close(fd) == -1) {
+	/* close stream */
+	for (i = 0; i < SS.n; i++) {
+		if (close(fd_sha[i] == -1)) {
+			fprintf(stderr, "err:close() %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+	}
+	if (close(fd_sec) == -1) {
 		fprintf(stderr, "err:close() %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	/* close file */
+	for (i = 0; i < SS.n; i++) {
+		if (fclose(fp_sha[i]) == EOF) {
+			fprintf(stderr, "err:fclose() %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+	}
+	if (fclose(fp_sec) == EOF) {
+		fprintf(stderr, "err:fclose() %s\n", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
 	free(serverId);
 	free(poly);
 	free(shares);
+	free(chara_sha);
 	free(fileName);
-	free(sc);
-	fclose(fp_sec);
-	fclose(*fp_s);
+	free(fileNum);
+	free(fp_sha);
+	free(fd_sha);
 }
 
 /* combine shares and restore secret */
@@ -363,7 +373,7 @@ void create_shares(int *serverId, int *poly, int *shares, SS_param SS, int *GF_v
 }
 
 /* lagrange interpolation on GF(extension field) */
-/* each operations what is used here is shown at "field_***" functions */
+/* each operations what used here is shown at "field_***" functions */
 int lagrange(int dataNum, int dataX[], int dataY[], int *GF_vector)
 {
 	int x = 0;
