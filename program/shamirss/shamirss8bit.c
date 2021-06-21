@@ -27,7 +27,7 @@ typedef struct SS_param {
 	int k;
 	int n;
 } SS_param;
-const SS_param SS = {2, 3};
+const SS_param SS = {2, 10};
 
 /* struct of options */
 static struct option longopts[] = {
@@ -208,6 +208,8 @@ void split(char *path, int *GF_vector)
 	int *poly = NULL;
 	int *shares = NULL;
 	int i;
+	int digit = 0;
+	int fileNameLen = 0;
 
 	/* open secret file */
 	fd_sec = open(path, O_RDONLY);
@@ -230,24 +232,24 @@ void split(char *path, int *GF_vector)
 	fp_sha = (FILE **)malloc(sizeof(FILE *) * SS.n);
 	fd_sha = (int *)malloc(sizeof(int) * SS.n);
 	if (SS.n < 10) {
-		fileName = (char *)malloc(sizeof(char) * 6);
-		fileNum = (char *)malloc(sizeof(char) * 1);
+		digit = 1;
 	}
 	else if (SS.n < 100) {
-		fileName = (char *)malloc(sizeof(char) * 7);
-		fileNum = (char *)malloc(sizeof(char) * 2);
+		digit = 2;
 	}
 	else {
-		fileName = (char *)malloc(sizeof(char) * 8);
-		fileNum = (char *)malloc(sizeof(char) * 3);
+		digit = 3;
 	}
+	fileNameLen = strlen(ext) + 1 + digit;
+	fileName = (char *)malloc(sizeof(char) * fileNameLen);
+	fileNum = (char *)malloc(sizeof(char) * digit);
 
 	/* create file of share */
 	/* if it already exists the same name file, return EXIT_FAILURE */
 	for (i = 0; i < SS.n; i++) {
-		sprintf(fileNum, "%d", i);
+		sprintf(fileNum, "%d", i + 1);
 
-		if (snprintf(fileName, 6, "%s%s", fileNum, ext) < 5) {
+		if (snprintf(fileName, fileNameLen, "%s%s", fileNum, ext) < (fileNameLen - digit)) {
 			fprintf(stderr, "err:snprintf() %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
