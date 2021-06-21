@@ -36,7 +36,6 @@ static struct option longopts[] = {
 	{0,		0,			0,	0}
 };
 
-
 /* set GF info that GF vector */
 void set_GF_info(int *GF_vector);
 
@@ -69,6 +68,7 @@ int main(int argc, char *argv[])
 
 	srand((unsigned)time(NULL));
 
+	/* parse option */
 	if (argc < 2) {
 		fprintf(stderr, "Too a few arguments\n");
 		fprintf(stderr, USAGE, argv[0]);
@@ -89,6 +89,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	/* init GF info, vector */
 	GF_vector = (int *)malloc(sizeof(int) * FIELD_SIZE);
 	set_GF_info(GF_vector);
 
@@ -221,10 +222,30 @@ void split(char *path, int *GF_vector)
 		exit(EXIT_FAILURE);
 	}
 
+	/* dynamic memory allocation */
+	serverId = (int *)malloc(sizeof(int) * (SS.n));
+	poly = (int *)malloc(sizeof(int) * (SS.k));
+	shares = (int *)malloc(sizeof(int) * (SS.n));
+	chara_sha = (char *)malloc(sizeof(char) * 1);
+	fp_sha = (FILE **)malloc(sizeof(FILE *) * SS.n);
+	fd_sha = (int *)malloc(sizeof(int) * SS.n);
+	if (SS.n < 10) {
+		fileName = (char *)malloc(sizeof(char) * 6);
+		fileNum = (char *)malloc(sizeof(char) * 1);
+	}
+	else if (SS.n < 100) {
+		fileName = (char *)malloc(sizeof(char) * 7);
+		fileNum = (char *)malloc(sizeof(char) * 2);
+	}
+	else {
+		fileName = (char *)malloc(sizeof(char) * 8);
+		fileNum = (char *)malloc(sizeof(char) * 3);
+	}
+
 	/* create file of share */
 	/* if it already exists the same name file, return EXIT_FAILURE */
 	for (i = 0; i < SS.n; i++) {
-		*fileNum = i + '0';
+		sprintf(fileNum, "%d", i);
 
 		if (snprintf(fileName, 6, "%s%s", fileNum, ext) < 5) {
 			fprintf(stderr, "err:snprintf() %s\n", strerror(errno));
@@ -244,16 +265,6 @@ void split(char *path, int *GF_vector)
 		}
 	}
 
-	/* dynamic memory allocation */
-	serverId = (int *)malloc(sizeof(int) * (SS.n));
-	poly = (int *)malloc(sizeof(int) * (SS.k));
-	shares = (int *)malloc(sizeof(int) * (SS.n));
-	chara_sha = (char *)malloc(sizeof(char) * 1);
-	fileName = (char *)malloc(sizeof(char) * 6);
-	fileNum = (char *)malloc(sizeof(char) * 1);
-	fp_sha = (FILE **)malloc(sizeof(FILE *) * SS.n);
-	fd_sha = (int *)malloc(sizeof(int) * SS.n);
-
 	generate_server_id(serverId, SS.n);
 
 	/* read a byte, then create and write shares*/
@@ -263,7 +274,7 @@ void split(char *path, int *GF_vector)
 		create_shares(serverId, poly, shares, SS, GF_vector);
 
 		for (i = 0; i < SS.n; i++) {
-			*chara_sha = shares[i] + '0';
+			sprintf(chara_sha, "%d", shares[i]);
 			
 			if (fputs(chara_sha, fp_sha[i]) == EOF) {
 				fprintf(stderr, "err:fputs() %s\n", strerror(errno));
@@ -274,25 +285,13 @@ void split(char *path, int *GF_vector)
 
 	/* close stream */
 	for (i = 0; i < SS.n; i++) {
-		if (close(fd_sha[i] == -1)) {
+		if (close(fd_sha[i]) == -1) {
 			fprintf(stderr, "err:close() %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 	}
 	if (close(fd_sec) == -1) {
 		fprintf(stderr, "err:close() %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-
-	/* close file */
-	for (i = 0; i < SS.n; i++) {
-		if (fclose(fp_sha[i]) == EOF) {
-			fprintf(stderr, "err:fclose() %s\n", strerror(errno));
-			exit(EXIT_FAILURE);
-		}
-	}
-	if (fclose(fp_sec) == EOF) {
-		fprintf(stderr, "err:fclose() %s\n", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
