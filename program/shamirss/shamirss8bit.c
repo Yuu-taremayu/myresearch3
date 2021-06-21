@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 	set_GF_info(GF_vector);
 
 	if (strcmp(mode_flag, "split") == 0) {
-		printf("mode:%s\n", mode_flag);
+		fprintf(stdout, "mode:%s\n", mode_flag);
 		if (optind == argc - 1) {
 			printf("%s\n", argv[optind]);
 			char *path = NULL;
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 		}
 	}
 	else if (strcmp(mode_flag, "combine") == 0) {
-		printf("mode:%s\n", mode_flag);
+		fprintf(stdout, "mode:%s\n", mode_flag);
 		if (optind == argc) {
 			fprintf(stderr, USAGE, argv[0]);
 			exit(EXIT_FAILURE);
@@ -333,7 +333,6 @@ void generate_server_id(int *serverId, int n)
 
 	for (i = 0; i < n; i++) {
 		serverId[i] = i + 1;
-		printf("serverId[%d] = %d\n", i, serverId[i]);
 	}
 }
 
@@ -343,10 +342,8 @@ void generate_polynomial(int *poly, int secret, int k)
 	int i = 0;
 
 	poly[0] = secret;
-	printf("poly[%d] = %d\n", 0, poly[0]);
 	for (i = 1; i < k; i++) {
 		poly[i] = rand() % FIELD_SIZE;
-		printf("poly[%d] = %d\n", i, poly[i]);
 	}
 }
 
@@ -366,7 +363,6 @@ void create_shares(int *serverId, int *poly, int *shares, SS_param SS, int *GF_v
 			t3 = field_mul(t3, serverId[i], GF_vector);
 		}
 		shares[i] = t1;
-		printf("shares[%d] = %d\n", i, shares[i]);
 		t1 = 0;
 		t2 = 1;
 		t3 = 1;
