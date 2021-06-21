@@ -27,7 +27,7 @@ typedef struct SS_param {
 	int k;
 	int n;
 } SS_param;
-const SS_param SS = {2, 10};
+const SS_param SS = {2, 3};
 
 /* struct of options */
 static struct option longopts[] = {
@@ -198,7 +198,9 @@ void split(char *path, int *GF_vector)
 	int *fd_sha = NULL;
 	char *fileName = NULL;
 	char *fileNum = NULL;
-	char *ext = ".txt";
+	char *ext = ".share";
+	int digit = 0;
+	int fileNameLen = 0;
 	int newFileMode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH;
 	/* for read or write */
 	char chara;
@@ -208,8 +210,6 @@ void split(char *path, int *GF_vector)
 	int *poly = NULL;
 	int *shares = NULL;
 	int i;
-	int digit = 0;
-	int fileNameLen = 0;
 
 	/* open secret file */
 	fd_sec = open(path, O_RDONLY);
