@@ -5,12 +5,12 @@ Secret Sharing Command based Shamir's Secret Sharing Scheme
 Usage is the below, coming update soon...
 
 ### Mode
- - split (implemented) \
+ - split (implemented)
 	```
 	./shamirss8bit --mode=split [FILE]
 	```
 
- - combine (not yet) \
+ - combine (not yet)
 	```
 	./shamirss8bit --mode=combine [FILE ...]
 	```
