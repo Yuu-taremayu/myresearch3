@@ -312,13 +312,22 @@ void combine(char *path[], int shareNum, int *GF_vector)
 {
 	FILE *fp = NULL;
 	int fd = 0;
-	int i = 0;
 	int *serverId = NULL;
 	int *shares = NULL;
 	int secret = 0;
+	int i = 0, j = 0, k = 0;
 
 	serverId = (int *)malloc(sizeof(int) * (SS.n));
 	shares = (int *)malloc(sizeof(int) * (SS.n));
+
+	for (i = 0; i < shareNum; i++) {
+		while (path[i][j] != '.') {
+			j++;
+		}
+		for (k = 0; k < j; k++) {
+
+		}
+	}
 
 	secret = lagrange(SS.n, serverId, shares, GF_vector);
 
