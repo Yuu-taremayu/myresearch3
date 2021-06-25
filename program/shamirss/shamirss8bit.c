@@ -310,29 +310,45 @@ void split(char *path, int *GF_vector)
 /* combine shares and restore secret */
 void combine(char *path[], int shareNum, int *GF_vector)
 {
-	FILE *fp = NULL;
-	int fd = 0;
+	FILE **fp = NULL;
+	int *fd = NULL;
 	int *serverId = NULL;
 	int *shares = NULL;
 	int secret = 0;
 	int i = 0, j = 0, k = 0;
+	//char c;
 
-	serverId = (int *)malloc(sizeof(int) * (SS.n));
-	shares = (int *)malloc(sizeof(int) * (SS.n));
-
+	serverId = (int *)malloc(sizeof(int) * SS.n);
+	shares = (int *)malloc(sizeof(int) * SS.n);
+	fp = (FILE **)malloc(sizeof(FILE *) * shareNum);
+	fd = (int *)malloc(sizeof(int) * shareNum);
+	
 	for (i = 0; i < shareNum; i++) {
-		while (path[i][j] != '.') {
-			j++;
+		fd[i] = open(path[i], O_RDONLY);
+		if (fd[i] == -1) {
+			fprintf(stderr, "err:open() %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
 		}
-		for (k = 0; k < j; k++) {
 
+		fp[i] = fdopen(fd[i], "r");
+		if (fp[i] == NULL) {
+			fprintf(stderr, "err:fdopen() %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
 		}
 	}
 
-	secret = lagrange(SS.n, serverId, shares, GF_vector);
+	/*
+	while ((c = fgetc(fp[0])) != EOF) {
+		printf("%c", c);
+	}
+	*/
 
 	free(serverId);
 	free(shares);
+	for (i = 0; i < shareNum; i++) {
+		free(fp[i]);
+	}
+	free(fd);
 }
 
 /* prepare server IDs that are all different */
