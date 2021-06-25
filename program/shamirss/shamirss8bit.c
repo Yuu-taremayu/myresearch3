@@ -310,45 +310,46 @@ void split(char *path, int *GF_vector)
 /* combine shares and restore secret */
 void combine(char *path[], int shareNum, int *GF_vector)
 {
-	FILE **fp = NULL;
-	int *fd = NULL;
+	FILE **fp_sha = NULL;
+	int *fd_sha = NULL;
 	int *serverId = NULL;
 	int *shares = NULL;
 	int secret = 0;
 	int i = 0, j = 0, k = 0;
-	//char c;
 
-	serverId = (int *)malloc(sizeof(int) * SS.n);
-	shares = (int *)malloc(sizeof(int) * SS.n);
-	fp = (FILE **)malloc(sizeof(FILE *) * shareNum);
-	fd = (int *)malloc(sizeof(int) * shareNum);
+	fp_sha = (FILE **)malloc(sizeof(FILE *) * shareNum);
+	fd_sha = (int *)malloc(sizeof(int) * shareNum);
+	serverId = (int *)malloc(sizeof(int) * shareNum);
+	shares = (int *)malloc(sizeof(int) * shareNum);
 	
+	/* open share file */
 	for (i = 0; i < shareNum; i++) {
-		fd[i] = open(path[i], O_RDONLY);
-		if (fd[i] == -1) {
+		fd_sha[i] = open(path[i], O_RDONLY);
+		if (fd_sha[i] == -1) {
 			fprintf(stderr, "err:open() %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 
-		fp[i] = fdopen(fd[i], "r");
-		if (fp[i] == NULL) {
+		fp_sha[i] = fdopen(fd_sha[i], "r");
+		if (fp_sha[i] == NULL) {
 			fprintf(stderr, "err:fdopen() %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 	}
 
-	/*
-	while ((c = fgetc(fp[0])) != EOF) {
-		printf("%c", c);
+	/* read a byte, then reconstruct secret from shares */
+	while ((shares[0] = fgetc(fp_sha[0])) != EOF) {
+		for (i = 1; i < shareNum; i++) {
+			shares[i] = fgetc(fp_sha[i]);
+		}
 	}
-	*/
 
 	free(serverId);
 	free(shares);
 	for (i = 0; i < shareNum; i++) {
-		free(fp[i]);
+		free(fp_sha[i]);
 	}
-	free(fd);
+	free(fd_sha);
 }
 
 /* prepare server IDs that are all different */
