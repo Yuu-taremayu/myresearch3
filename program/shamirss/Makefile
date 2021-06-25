@@ -7,4 +7,4 @@ $(EXENAME): $(SRCFILE)
 	$(CC) $(CFLAGS) $< -o $@
 
 clean:
-	$(rm) -f *.share
+	rm -f *.share
