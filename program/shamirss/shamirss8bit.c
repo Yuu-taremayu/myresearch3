@@ -262,7 +262,7 @@ void split(char *path, int *GF_vector)
 
 		fp_sha[i] = fdopen(fd_sha[i], "w");
 		if (fp_sha[i] == NULL) {
-			fprintf(stderr, "err:fprintf() %s\n", strerror(errno));
+			fprintf(stderr, "err:fdopen() %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 	}
