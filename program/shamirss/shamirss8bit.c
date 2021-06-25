@@ -13,6 +13,9 @@
 /* define message of usage */
 #define USAGE "Usage: %s [--mode=m] [FILE ...]\n"
 
+/* define extension of share file */
+#define EXT ".share"
+
 /* Galois field size */
 /* 2^8 */
 /* also use modulo num */
@@ -198,7 +201,6 @@ void split(char *path, int *GF_vector)
 	int *fd_sha = NULL;
 	char *fileName = NULL;
 	char *fileNum = NULL;
-	char *ext = ".share";
 	int digit = 0;
 	int fileNameLen = 0;
 	int newFileMode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH;
@@ -240,7 +242,7 @@ void split(char *path, int *GF_vector)
 	else {
 		digit = 3;
 	}
-	fileNameLen = strlen(ext) + 1 + digit;
+	fileNameLen = strlen(EXT) + 1 + digit;
 	fileName = (char *)malloc(sizeof(char) * fileNameLen);
 	fileNum = (char *)malloc(sizeof(char) * digit);
 
@@ -249,7 +251,7 @@ void split(char *path, int *GF_vector)
 	for (i = 0; i < SS.n; i++) {
 		sprintf(fileNum, "%d", i + 1);
 
-		if (snprintf(fileName, fileNameLen, "%s%s", fileNum, ext) < (fileNameLen - digit)) {
+		if (snprintf(fileName, fileNameLen, "%s%s", fileNum, EXT) < (fileNameLen - digit)) {
 			fprintf(stderr, "err:snprintf() %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
