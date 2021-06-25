@@ -15,6 +15,7 @@
 
 /* define extension of share file */
 #define EXT ".share"
+#define EXTLEN (int)strlen(EXT)
 
 /* Galois field size */
 /* 2^8 */
@@ -119,6 +120,9 @@ int main(int argc, char *argv[])
 		else {
 			for (int i = optind; i < argc; i++) {
 				printf("%s\n", argv[i]);
+				if (strcmp(&argv[i][(int)strlen(argv[i]) - EXTLEN], EXT) != 0) {
+					fprintf(stderr, "err:invalid file name\n");
+				}
 			}
 			char **path = NULL;
 			path = (char **)malloc(sizeof(char *) * (argc - optind));
