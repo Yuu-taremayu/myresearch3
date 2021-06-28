@@ -118,12 +118,6 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 		else {
-			for (int i = optind; i < argc; i++) {
-				printf("%s\n", argv[i]);
-				if (strcmp(&argv[i][(int)strlen(argv[i]) - EXTLEN], EXT) != 0) {
-					fprintf(stderr, "err:invalid file name\n");
-				}
-			}
 			char **path = NULL;
 			path = (char **)malloc(sizeof(char *) * (argc - optind));
 			for (int i = 0; i < (argc - optind); i++) {
@@ -131,6 +125,9 @@ int main(int argc, char *argv[])
 				strcpy(path[i], argv[optind + i]);
 			}
 			combine(path, (argc - optind), GF_vector);
+			for (int i = 0; i < (argc - optind); i++) {
+				free(path[i]);
+			}
 		}
 	}
 	else {
@@ -319,14 +316,18 @@ void combine(char *path[], int shareNum, int *GF_vector)
 	FILE **fp_sha = NULL;
 	int *fd_sha = NULL;
 	int *serverId = NULL;
+	char **num = NULL;
+	char *end = NULL;
 	int *shares = NULL;
 	int secret = 0;
+	char *chara_sec = NULL;
 	int i = 0, j = 0, k = 0;
 
 	fp_sha = (FILE **)malloc(sizeof(FILE *) * shareNum);
 	fd_sha = (int *)malloc(sizeof(int) * shareNum);
 	serverId = (int *)malloc(sizeof(int) * shareNum);
 	shares = (int *)malloc(sizeof(int) * shareNum);
+	chara_sec = (char *)malloc(sizeof(char) * 1);
 	
 	/* open share file */
 	for (i = 0; i < shareNum; i++) {
@@ -343,17 +344,44 @@ void combine(char *path[], int shareNum, int *GF_vector)
 		}
 	}
 
+	num = (char **)malloc(sizeof(char *) * shareNum);
+	j = 0;
+	for (i = 0; i < shareNum; i++) {
+		while (path[i][j] != '.') {
+			j++;
+		}
+		num[i] = (char *)malloc(sizeof(char) * (j + 1));
+		for (k = 0; k < j; k++) {
+			num[i][k] = path[i][k];
+		}
+		num[i][k + 1] = '\0';
+		serverId[i] = (int)strtol(num[i], &end, 10);
+		j = 0;
+	}
+
 	/* read a byte, then reconstruct secret from shares */
 	while ((shares[0] = fgetc(fp_sha[0])) != EOF) {
 		for (i = 1; i < shareNum; i++) {
 			shares[i] = fgetc(fp_sha[i]);
 		}
+		//printf("%d\n", shares[0] - '0');
+		secret = lagrange(shareNum, serverId, shares, GF_vector);
+		//printf("%d\n", secret);
+		/*
+		char c = secret;
+		printf("%c", c);
+		*/
+		/*
+		sprintf(chara_sec, "%d", secret);
+		printf("%s", chara_sec);
+		*/
 	}
 
 	free(serverId);
 	free(shares);
 	for (i = 0; i < shareNum; i++) {
 		free(fp_sha[i]);
+		free(num[i]);
 	}
 	free(fd_sha);
 }
