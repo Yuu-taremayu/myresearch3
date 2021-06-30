@@ -26,6 +26,9 @@
 /* use BIT_MASK for truncate upper bit */
 #define BIT_MASK 0xff
 
+/* for reading shares */
+#define BUFSIZE 2
+
 /* parameters of Secret Sharing */
 typedef struct SS_param {
 	int k;
@@ -274,12 +277,18 @@ void split(char *path, int *GF_vector)
 
 	/* read a byte, then create and write shares*/
 	while ((chara = getc(fp_sec)) != EOF) {
+		//printf("%c", chara);
+		printf("%d\n", chara);
 		secret = chara;
+		if (secret > 255 || secret < 0) {
+			fprintf(stderr, "invalid character\n");
+			exit(EXIT_FAILURE);
+		}
 		generate_polynomial(poly, secret, SS.k);
 		create_shares(serverId, poly, shares, SS, GF_vector);
 
 		for (i = 0; i < SS.n; i++) {
-			sprintf(chara_sha, "%d", shares[i]);
+			sprintf(chara_sha, "%02x", shares[i]);
 			
 			if (fputs(chara_sha, fp_sha[i]) == EOF) {
 				fprintf(stderr, "err:fputs() %s\n", strerror(errno));
@@ -320,14 +329,18 @@ void combine(char *path[], int shareNum, int *GF_vector)
 	char *end = NULL;
 	int *shares = NULL;
 	int secret = 0;
-	char *chara_sec = NULL;
+	char **chara_sec = NULL;
+	char c;
 	int i = 0, j = 0, k = 0;
 
 	fp_sha = (FILE **)malloc(sizeof(FILE *) * shareNum);
 	fd_sha = (int *)malloc(sizeof(int) * shareNum);
 	serverId = (int *)malloc(sizeof(int) * shareNum);
 	shares = (int *)malloc(sizeof(int) * shareNum);
-	chara_sec = (char *)malloc(sizeof(char) * 1);
+	chara_sec = (char **)malloc(sizeof(char *) * shareNum);
+	for (i = 0; i < shareNum; i++) {
+		chara_sec[i] = (char *)malloc(sizeof(char) * BUFSIZE);
+	}
 	
 	/* open share file */
 	for (i = 0; i < shareNum; i++) {
@@ -344,6 +357,7 @@ void combine(char *path[], int shareNum, int *GF_vector)
 		}
 	}
 
+	/* extract serverId from file name*/
 	num = (char **)malloc(sizeof(char *) * shareNum);
 	j = 0;
 	for (i = 0; i < shareNum; i++) {
@@ -355,26 +369,29 @@ void combine(char *path[], int shareNum, int *GF_vector)
 			num[i][k] = path[i][k];
 		}
 		num[i][k + 1] = '\0';
-		serverId[i] = (int)strtol(num[i], &end, 10);
+		serverId[i] = (int)strtol(num[i], &end, 10) - 1;
 		j = 0;
 	}
 
-	/* read a byte, then reconstruct secret from shares */
-	while ((shares[0] = fgetc(fp_sha[0])) != EOF) {
+	/* read 2 characters, then reconstruct secret from shares */
+	j = 0;
+	while ((c = fgetc(fp_sha[0])) != EOF) {
+		chara_sec[0][j] = c;
 		for (i = 1; i < shareNum; i++) {
-			shares[i] = fgetc(fp_sha[i]);
+			c = fgetc(fp_sha[i]);
+			chara_sec[i][j] = c;
 		}
-		//printf("%d\n", shares[0] - '0');
-		secret = lagrange(shareNum, serverId, shares, GF_vector);
-		//printf("%d\n", secret);
-		/*
-		char c = secret;
-		printf("%c", c);
-		*/
-		/*
-		sprintf(chara_sec, "%d", secret);
-		printf("%s", chara_sec);
-		*/
+		if (j == (BUFSIZE - 1)) {
+			for (k = 0; k < shareNum; k++) {
+				printf("%s ", chara_sec[k]);
+				shares[k] = (int)strtol(chara_sec[k], &end, 16);
+				printf("%d ", shares[k]);
+			}
+			secret = lagrange(shareNum, serverId, shares, GF_vector);
+			printf("%d", secret);
+			puts("");
+		}
+		j = (j + 1) % BUFSIZE;
 	}
 
 	free(serverId);
@@ -382,8 +399,11 @@ void combine(char *path[], int shareNum, int *GF_vector)
 	for (i = 0; i < shareNum; i++) {
 		free(fp_sha[i]);
 		free(num[i]);
+		free(chara_sec[i]);
 	}
 	free(fd_sha);
+	free(num);
+	free(chara_sec);
 }
 
 /* prepare server IDs that are all different */
