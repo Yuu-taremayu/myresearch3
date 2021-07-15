@@ -10,24 +10,26 @@
 #define _GNU_SOURCE
 #include <getopt.h>
 
+#include "const.h"
+
 /* define message of usage */
-#define USAGE "Usage: %s [--mode=m] [FILE ...]\n"
+//#define USAGE "Usage: %s [--mode=m] [FILE ...]\n"
 
 /* define extension of share file */
-#define EXT ".share"
-#define EXTLEN (int)strlen(EXT)
+//#define EXT ".share"
+//#define EXTLEN (int)strlen(EXT)
 
 /* Galois field size */
 /* 2^8 */
 /* also use modulo num */
-#define FIELD_SIZE 256
+//#define FIELD_SIZE 256
 
 /* Bit mask */
 /* use BIT_MASK for truncate upper bit */
-#define BIT_MASK 0xff
+//#define BIT_MASK 0xff
 
 /* for reading shares */
-#define BUFSIZE 2
+//#define BUFSIZE 2
 
 /* parameters of Secret Sharing */
 typedef struct SS_param {
@@ -278,7 +280,7 @@ void split(char *path, int *GF_vector)
 	/* read a byte, then create and write shares*/
 	while ((chara = getc(fp_sec)) != EOF) {
 		//printf("%c", chara);
-		printf("%d\n", chara);
+		//printf("%d\n", chara);
 		secret = chara;
 		if (secret > 255 || secret < 0) {
 			fprintf(stderr, "invalid character\n");
