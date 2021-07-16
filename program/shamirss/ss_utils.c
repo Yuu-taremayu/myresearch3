@@ -21,6 +21,8 @@ void generate_polynomial(int *poly, int secret, int k);
 /* create shares */
 void create_shares(int *serverId, int *poly, int *shares, SS_param SS, int *GF_vector);
 
+extern SS_param SS;
+
 /* split secret and create shares */
 void split(char *path, int *GF_vector)
 {
@@ -42,7 +44,6 @@ void split(char *path, int *GF_vector)
 	int *poly = NULL;
 	int *shares = NULL;
 	int i;
-	SS_param SS = {2, 3};
 
 	/* open secret file */
 	fd_sec = open(path, O_RDONLY);
