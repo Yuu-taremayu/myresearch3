@@ -21,11 +21,15 @@ static struct option longopts[] = {
 	{0,		0,			0,	0}
 };
 
+SS_param SS = {0, 0};
+
 int main(int argc, char *argv[])
 {
 	int *GF_vector = NULL;
 	int opt;
 	char *mode_flag = NULL;
+	char *end = NULL;
+	int tmp = 0;
 
 	srand((unsigned)time(NULL));
 
@@ -36,13 +40,23 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	while ((opt = getopt_long(argc, argv, "knhm:", longopts, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "n:k:hm:", longopts, NULL)) != -1) {
 		switch (opt) {
-			case 'k':
-				mode_flag = optarg;
-				break;
 			case 'n':
-				mode_flag = optarg;
+				tmp = (int)strtol(optarg, &end, 10);
+				if (tmp < 1 || tmp > (FIELD_SIZE - 1)) {
+					fprintf(stderr, "error: invalid parameter.\n");
+					exit(EXIT_FAILURE);
+				}
+				SS.n = tmp;
+				break;
+			case 'k':
+				tmp = (int)strtol(optarg, &end, 10);
+				if (tmp < 1 || tmp > (FIELD_SIZE - 1)) {
+					fprintf(stderr, "error: invalid parameter.\n");
+					exit(EXIT_FAILURE);
+				}
+				SS.k = tmp;
 				break;
 			case 'm':
 				mode_flag = optarg;
@@ -54,6 +68,11 @@ int main(int argc, char *argv[])
 				fprintf(stderr, USAGE, argv[0]);
 				exit(EXIT_FAILURE);
 		}
+	}
+
+	if (SS.n < SS.k) {
+		fprintf(stderr, "error: invalid parameter.\n");
+		exit(EXIT_FAILURE);
 	}
 
 	/* init GF info, vector */
