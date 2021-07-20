@@ -72,6 +72,7 @@ int main(int argc, char *argv[])
 
 	if (SS.n < SS.k) {
 		fprintf(stderr, "error: invalid parameter.\n");
+		fprintf(stderr, "you can use parameter k < n.\n");
 		exit(EXIT_FAILURE);
 	}
 
