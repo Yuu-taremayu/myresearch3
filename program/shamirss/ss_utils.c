@@ -105,8 +105,7 @@ void split(char *path, int *GF_vector)
 
 	/* read a byte, then create and write shares*/
 	while ((chara = getc(fp_sec)) != EOF) {
-		//printf("%c", chara);
-		//printf("%d\n", chara);
+		printf("%x, %x\n", chara, EOF);
 		secret = chara;
 		if (secret > 255 || secret < 0) {
 			fprintf(stderr, "invalid character\n");
@@ -158,7 +157,7 @@ void combine(char *path[], int shareNum, int *GF_vector)
 	int *shares = NULL;
 	int secret = 0;
 	char **chara_sec = NULL;
-	char c;
+	int c;
 	int i = 0, j = 0, k = 0;
 
 	fp_sha = (FILE **)malloc(sizeof(FILE *) * shareNum);
@@ -166,6 +165,7 @@ void combine(char *path[], int shareNum, int *GF_vector)
 	serverId = (int *)malloc(sizeof(int) * shareNum);
 	shares = (int *)malloc(sizeof(int) * shareNum);
 	chara_sec = (char **)malloc(sizeof(char *) * shareNum);
+
 	for (i = 0; i < shareNum; i++) {
 		chara_sec[i] = (char *)malloc(sizeof(char) * BUFSIZE);
 	}
@@ -197,7 +197,7 @@ void combine(char *path[], int shareNum, int *GF_vector)
 			num[i][k] = path[i][k];
 		}
 		num[i][k + 1] = '\0';
-		serverId[i] = (int)strtol(num[i], &end, 10) - 1;
+		serverId[i] = (int)strtol(num[i], &end, 10);
 		j = 0;
 	}
 
@@ -211,13 +211,10 @@ void combine(char *path[], int shareNum, int *GF_vector)
 		}
 		if (j == (BUFSIZE - 1)) {
 			for (k = 0; k < shareNum; k++) {
-				printf("%s ", chara_sec[k]);
 				shares[k] = (int)strtol(chara_sec[k], &end, 16);
-				printf("%d ", shares[k]);
 			}
 			secret = lagrange(shareNum, serverId, shares, GF_vector);
-			printf("%d", secret);
-			puts("");
+			printf("%c", secret);
 		}
 		j = (j + 1) % BUFSIZE;
 	}
