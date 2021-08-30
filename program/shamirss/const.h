@@ -1,5 +1,5 @@
 /* define message of usage */
-#define USAGE "Usage: %s [--mode=m] [FILE ...]\n"
+#define USAGE "Usage: %s \n\t --mode=split -n=num -k=num FILE \n\t --mode=combine FILE [...]\n"
 
 /* define extension of share file */
 #define EXT ".share"
