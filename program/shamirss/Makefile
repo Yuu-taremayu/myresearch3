@@ -2,7 +2,7 @@ EXENAME = shamirss8bit
 SRCFILE = shamirss8bit.c
 OBJS = field_op.o ss_utils.o
 CC = gcc
-CFLAGS = -Wall -Wextra -MMD
+CFLAGS = -Wall -Wextra -g -O0 -MMD
 
 all: $(EXENAME)
 
