@@ -81,7 +81,10 @@ void split(char *path, int *GF_vector)
 	/* create file of share */
 	/* if it already exists the same name file, return EXIT_FAILURE */
 	for (i = 0; i < SS.n; i++) {
-		sprintf(fileNum, "%d", i + 1);
+		if (sprintf(fileNum, "%d", i + 1) < 0) {
+			fprintf(stderr, "err:sprintf() %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
 
 		if (snprintf(fileName, fileNameLen, "%s%s", fileNum, EXT) < (fileNameLen - digit)) {
 			fprintf(stderr, "err:snprintf() %s\n", strerror(errno));
@@ -105,7 +108,7 @@ void split(char *path, int *GF_vector)
 
 	/* read a byte, then create and write shares*/
 	while ((chara = getc(fp_sec)) != EOF) {
-		printf("%x, %x\n", chara, EOF);
+		//printf("%x, %x\n", chara, EOF);
 		secret = chara;
 		if (secret > 255 || secret < 0) {
 			fprintf(stderr, "invalid character\n");
@@ -115,10 +118,13 @@ void split(char *path, int *GF_vector)
 		create_shares(serverId, poly, shares, SS, GF_vector);
 
 		for (i = 0; i < SS.n; i++) {
-			sprintf(chara_sha, "%02x", shares[i]);
+			if (sprintf(chara_sha, "%02x", shares[i]) < 0) {
+				fprintf(stderr, "err:sprintf() %s\n", strerror(errno));
+				exit(EXIT_FAILURE);
+			}
 			
-			if (fputs(chara_sha, fp_sha[i]) == EOF) {
-				fprintf(stderr, "err:fputs() %s\n", strerror(errno));
+			if (fprintf(fp_sha[i], "%s", chara_sha) < 0) {
+				fprintf(stderr, "err:fprintf() %s\n", strerror(errno));
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -126,13 +132,13 @@ void split(char *path, int *GF_vector)
 
 	/* close stream */
 	for (i = 0; i < SS.n; i++) {
-		if (close(fd_sha[i]) == -1) {
-			fprintf(stderr, "err:close() %s\n", strerror(errno));
+		if (fclose(fp_sha[i]) != 0) {
+			fprintf(stderr, "err:fclose() %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 	}
-	if (close(fd_sec) == -1) {
-		fprintf(stderr, "err:close() %s\n", strerror(errno));
+	if (fclose(fp_sec) != 0) {
+		fprintf(stderr, "err:fclose() %s\n", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
