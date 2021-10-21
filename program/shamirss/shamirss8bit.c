@@ -96,10 +96,14 @@ int main(int argc, char *argv[])
 		fprintf(stdout, "mode:%s\n", mode_flag);
 		if (optind == argc - 1) {
 			printf("%s\n", argv[optind]);
+
 			char *path = NULL;
+
 			path = (char *)malloc(sizeof(char) * strlen(argv[optind]));
 			strcpy(path, argv[optind]);
 			split(path, GF_vector);
+
+			free(path);
 		}
 		else {
 			fprintf(stderr, USAGE, argv[0]);
@@ -114,15 +118,18 @@ int main(int argc, char *argv[])
 		}
 		else {
 			char **path = NULL;
+
 			path = (char **)malloc(sizeof(char *) * (argc - optind));
 			for (int i = 0; i < (argc - optind); i++) {
 				path[i] = (char *)malloc(sizeof(char) * strlen(argv[optind + i]));
 				strcpy(path[i], argv[optind + i]);
 			}
 			combine(path, (argc - optind), GF_vector);
+
 			for (int i = 0; i < (argc - optind); i++) {
 				free(path[i]);
 			}
+			free(path);
 		}
 	}
 	else {
