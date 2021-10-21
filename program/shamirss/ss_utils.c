@@ -280,7 +280,6 @@ void combine(char *path[], int shareNum, int *GF_vector)
 				fprintf(stderr, "err:fprintf() %s\n", strerror(errno));
 				exit(EXIT_FAILURE);
 			}
-			printf("%c", secret);
 		}
 		j = (j + 1) % BUFSIZE;
 	}
