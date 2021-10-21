@@ -4,20 +4,28 @@
 #include "field_op.h"
 #include "const.h"
 
-/* set GF info that GF vector */
+/*
+ * set GF info that GF vector
+ */
 void set_GF_info(int *GF_vector);
 
-/* lagrange interpolation */
+/*
+ * lagrange interpolation
+ */
 int lagrange(int dataNum, int dataX[], int dataY[], int *GF_vector);
 int base_poly(int dataNum, int i, int x, int dataX[], int *GF_vector);
 
-/* arithmetic functions */
+/*
+ * arithmetic functions
+ */
 int field_add(int x, int y);
 int field_sub(int x, int y);
 int field_mul(int x, int y, int *GF_vector);
 int field_div(int x, int y, int *GF_vector);
 
-/* set index and GF_vector of elements on GF */
+/*
+ * set index and GF_vector of elements on GF
+ */
 void set_GF_info(int *GF_vector)
 {
 	int gene_poly[8+1] = {1, 0, 1, 1, 1, 0, 0, 0, 1};
@@ -69,8 +77,10 @@ void set_GF_info(int *GF_vector)
 	
 }
 
-/* lagrange interpolation on GF(extension field) */
-/* each operations what used here is shown at "field_***" functions */
+/*
+ * lagrange interpolation on GF(extension field)
+ * each operations what used here is shown at "field_***" functions
+ */
 int lagrange(int dataNum, int dataX[], int dataY[], int *GF_vector)
 {
 	int x = 0;
@@ -90,8 +100,10 @@ int lagrange(int dataNum, int dataX[], int dataY[], int *GF_vector)
 	return L;
 }
 
-/* calculation base polynomial for lagrange interpolation */
-/* each operations what is used here is shown at "field_***" functions */
+/*
+ * calculation base polynomial for lagrange interpolation
+ * each operations what is used here is shown at "field_***" functions
+ */
 int base_poly(int dataNum, int i, int x, int dataX[], int *GF_vector)
 {
 	int sub = 0;
@@ -108,23 +120,29 @@ int base_poly(int dataNum, int i, int x, int dataX[], int *GF_vector)
 	return l;
 }
 
-/* basic operations */
-/* addition on GF(extension field) */
-/* xor and bit mask*/
+/* 
+ * basic operations
+ * addition on GF(extension field)
+ * xor and bit mask
+ */
 int field_add(int x, int y)
 {
 	return (x ^ y) & BIT_MASK;
 }
 
-/* subtraction on GF(extension field) */
-/* the same as field_add() */
+/* 
+ * subtraction on GF(extension field)
+ * the same as field_add()
+ */
 int field_sub(int x, int y)
 {
 	return (x ^ y) & BIT_MASK;
 }
 
-/* multiplication on GF(extension field) */
-/* convert vector to exponentiation, calc mod and reconvert */
+/*
+ * multiplication on GF(extension field)
+ * convert vector to exponentiation, calc mod and reconvert
+ */
 int field_mul(int x, int y, int *GF_vector)
 {
 	if (x == 0 || y == 0) {
@@ -149,8 +167,10 @@ int field_mul(int x, int y, int *GF_vector)
 	return GF_vector[indAns + 1];
 }
 
-/* division on GF(extension field) */
-/* convert vector to exponentiation, calc mod and reconvert */
+/*
+ * division on GF(extension field)
+ * convert vector to exponentiation, calc mod and reconvert
+ */
 int field_div(int x, int y, int *GF_vector)
 {
 	if (x == 0) {
