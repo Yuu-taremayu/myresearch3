@@ -230,6 +230,9 @@ void combine(char *path[], int shareNum, int *GF_vector)
 		}
 	}
 
+	/*
+	 * open output file in create mode
+	 */
 	fdOut = open(outputFilename, openFlag, newFilemode);
 	if (fdOut == -1) {
 		fprintf(stderr, "err:open() %s\n", strerror(errno));
@@ -285,15 +288,29 @@ void combine(char *path[], int shareNum, int *GF_vector)
 	}
 
 	/*
+	 * close stream
+	 */
+	for (i = 0; i < shareNum; i++) {
+		if (fclose(fpShares[i]) != 0) {
+			fprintf(stderr, "err:fclose() %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+	}
+	if (fclose(fpOut) != 0) {
+		fprintf(stderr, "err:fclose() %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	/*
 	 * free variables
 	 */
 	free(serverId);
 	free(shares);
 	for (i = 0; i < shareNum; i++) {
-		free(fpShares[i]);
 		free(num[i]);
 		free(charaSecret[i]);
 	}
+	free(fpShares);
 	free(fdShares);
 	free(num);
 	free(charaSecret);
