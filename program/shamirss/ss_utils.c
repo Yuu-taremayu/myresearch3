@@ -46,6 +46,7 @@ void split(char *path, int *GF_vector)
 	int digit = 0;
 	int fileNameLen = 0;
 	int newFileMode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH;
+	int openFlag = O_CREAT | O_EXCL | O_APPEND | O_WRONLY;
 	/* 
 	 * for read or write
 	 */
@@ -109,7 +110,7 @@ void split(char *path, int *GF_vector)
 			exit(EXIT_FAILURE);
 		}
 
-		fdShares[i] = open(fileName, O_CREAT | O_EXCL | O_APPEND | O_WRONLY, newFileMode);
+		fdShares[i] = open(fileName, openFlag, newFileMode);
 		if (fdShares[i] == -1) {
 			fprintf(stderr, "err:open() %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
