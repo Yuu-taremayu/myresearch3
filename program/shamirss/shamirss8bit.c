@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 {
 	int *GF_vector = NULL;
 	int opt;
-	char *mode_flag = NULL;
+	char *modeFlag = NULL;
 	char *end = NULL;
 	int tmp = 0;
 
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 				SS.k = tmp;
 				break;
 			case 'm':
-				mode_flag = optarg;
+				modeFlag = optarg;
 				break;
 			case 'h':
 				fprintf(stdout, USAGE, argv[0]);
@@ -92,8 +92,8 @@ int main(int argc, char *argv[])
 	/*
 	 * processing
 	 */
-	if (strcmp(mode_flag, "split") == 0) {
-		fprintf(stdout, "mode:%s\n", mode_flag);
+	if (strcmp(modeFlag, "split") == 0) {
+		fprintf(stdout, "mode:%s\n", modeFlag);
 		if (optind == argc - 1) {
 			printf("%s\n", argv[optind]);
 
@@ -110,8 +110,8 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 	}
-	else if (strcmp(mode_flag, "combine") == 0) {
-		fprintf(stdout, "mode:%s\n", mode_flag);
+	else if (strcmp(modeFlag, "combine") == 0) {
+		fprintf(stdout, "mode:%s\n", modeFlag);
 		if (optind == argc) {
 			fprintf(stderr, USAGE, argv[0]);
 			exit(EXIT_FAILURE);

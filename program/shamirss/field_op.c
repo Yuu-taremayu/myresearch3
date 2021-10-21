@@ -28,7 +28,7 @@ int field_div(int x, int y, int *GF_vector);
  */
 void set_GF_info(int *GF_vector)
 {
-	int gene_poly[8+1] = {1, 0, 1, 1, 1, 0, 0, 0, 1};
+	int genePoly[8+1] = {1, 0, 1, 1, 1, 0, 0, 0, 1};
 	int mem[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 	int in = 0, out = 0;
 	int i = 0, j = 0, k = 0;
@@ -46,7 +46,7 @@ void set_GF_info(int *GF_vector)
 			out = mem[7];
 			for (k = (8 - 1); k >= 0; k--) {
 				if (k == 0) {
-					if (gene_poly[0] == 1) {
+					if (genePoly[0] == 1) {
 						mem[0] = in ^ out;
 					}
 					else {
@@ -54,7 +54,7 @@ void set_GF_info(int *GF_vector)
 					}
 				}
 				else {
-					if (gene_poly[k] == 1) {
+					if (genePoly[k] == 1) {
 						mem[k] = mem[k - 1] ^ out;
 					}
 					else {

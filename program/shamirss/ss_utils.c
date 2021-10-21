@@ -37,10 +37,10 @@ void split(char *path, int *GF_vector)
 	/*
 	 * for file IO
 	 */
-	FILE *fp_sec = NULL;
-	int fd_sec = 0;
-	FILE **fp_sha = NULL;
-	int *fd_sha = NULL;
+	FILE *fpSecret = NULL;
+	int fdSecret = 0;
+	FILE **fpShares = NULL;
+	int *fdShares = NULL;
 	char *fileName = NULL;
 	char *fileNum = NULL;
 	int digit = 0;
@@ -50,7 +50,7 @@ void split(char *path, int *GF_vector)
 	 * for read or write
 	 */
 	char chara;
-	char *chara_sha = NULL;
+	char *charaShares = NULL;
 	int secret = 0;
 	int *serverId = NULL;
 	int *poly = NULL;
@@ -60,14 +60,14 @@ void split(char *path, int *GF_vector)
 	/*
 	 * open secret file
 	 */
-	fd_sec = open(path, O_RDONLY);
-	if (fd_sec == -1) {
+	fdSecret = open(path, O_RDONLY);
+	if (fdSecret == -1) {
 		fprintf(stderr, "err:open() %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
-	fp_sec = fdopen(fd_sec, "r");
-	if (fp_sec == NULL) {
+	fpSecret = fdopen(fdSecret, "r");
+	if (fpSecret == NULL) {
 		fprintf(stderr, "err:fdopen() %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
@@ -78,9 +78,9 @@ void split(char *path, int *GF_vector)
 	serverId = (int *)malloc(sizeof(int) * (SS.n));
 	poly = (int *)malloc(sizeof(int) * (SS.k));
 	shares = (int *)malloc(sizeof(int) * (SS.n));
-	chara_sha = (char *)malloc(sizeof(char) * 1);
-	fp_sha = (FILE **)malloc(sizeof(FILE *) * SS.n);
-	fd_sha = (int *)malloc(sizeof(int) * SS.n);
+	charaShares = (char *)malloc(sizeof(char) * 1);
+	fpShares = (FILE **)malloc(sizeof(FILE *) * SS.n);
+	fdShares = (int *)malloc(sizeof(int) * SS.n);
 	if (SS.n < 10) {
 		digit = 1;
 	}
@@ -109,14 +109,14 @@ void split(char *path, int *GF_vector)
 			exit(EXIT_FAILURE);
 		}
 
-		fd_sha[i] = open(fileName, O_CREAT | O_EXCL | O_APPEND | O_WRONLY, newFileMode);
-		if (fd_sha[i] == -1) {
+		fdShares[i] = open(fileName, O_CREAT | O_EXCL | O_APPEND | O_WRONLY, newFileMode);
+		if (fdShares[i] == -1) {
 			fprintf(stderr, "err:open() %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 
-		fp_sha[i] = fdopen(fd_sha[i], "w");
-		if (fp_sha[i] == NULL) {
+		fpShares[i] = fdopen(fdShares[i], "w");
+		if (fpShares[i] == NULL) {
 			fprintf(stderr, "err:fdopen() %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
@@ -127,7 +127,7 @@ void split(char *path, int *GF_vector)
 	/*
 	 * read a byte, then create and write shares
 	 */
-	while ((chara = getc(fp_sec)) != EOF) {
+	while ((chara = getc(fpSecret)) != EOF) {
 		secret = chara;
 		if (secret > 255 || secret < 0) {
 			fprintf(stderr, "invalid character\n");
@@ -137,12 +137,12 @@ void split(char *path, int *GF_vector)
 		create_shares(serverId, poly, shares, SS, GF_vector);
 
 		for (i = 0; i < SS.n; i++) {
-			if (sprintf(chara_sha, "%02x", shares[i]) < 0) {
+			if (sprintf(charaShares, "%02x", shares[i]) < 0) {
 				fprintf(stderr, "err:sprintf() %s\n", strerror(errno));
 				exit(EXIT_FAILURE);
 			}
 			
-			if (fprintf(fp_sha[i], "%s", chara_sha) < 0) {
+			if (fprintf(fpShares[i], "%s", charaShares) < 0) {
 				fprintf(stderr, "err:fprintf() %s\n", strerror(errno));
 				exit(EXIT_FAILURE);
 			}
@@ -153,12 +153,12 @@ void split(char *path, int *GF_vector)
 	 * close stream
 	 */
 	for (i = 0; i < SS.n; i++) {
-		if (fclose(fp_sha[i]) != 0) {
+		if (fclose(fpShares[i]) != 0) {
 			fprintf(stderr, "err:fclose() %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 	}
-	if (fclose(fp_sec) != 0) {
+	if (fclose(fpSecret) != 0) {
 		fprintf(stderr, "err:fclose() %s\n", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
@@ -169,11 +169,11 @@ void split(char *path, int *GF_vector)
 	free(serverId);
 	free(poly);
 	free(shares);
-	free(chara_sha);
+	free(charaShares);
 	free(fileName);
 	free(fileNum);
-	free(fp_sha);
-	free(fd_sha);
+	free(fpShares);
+	free(fdShares);
 }
 
 /*
@@ -184,41 +184,41 @@ void combine(char *path[], int shareNum, int *GF_vector)
 	/*
 	 * for file IO
 	 */
-	FILE **fp_sha = NULL;
-	int *fd_sha = NULL;
+	FILE **fpShares = NULL;
+	int *fdShares = NULL;
 	int *serverId = NULL;
 	char **num = NULL;
 	char *end = NULL;
 	int *shares = NULL;
 	int secret = 0;
-	char **chara_sec = NULL;
+	char **charaSecret = NULL;
 	int c;
 	int i = 0, j = 0, k = 0;
 
 	/*
 	 * dynamic memory allocation
 	 */
-	fp_sha = (FILE **)malloc(sizeof(FILE *) * shareNum);
-	fd_sha = (int *)malloc(sizeof(int) * shareNum);
+	fpShares = (FILE **)malloc(sizeof(FILE *) * shareNum);
+	fdShares = (int *)malloc(sizeof(int) * shareNum);
 	serverId = (int *)malloc(sizeof(int) * shareNum);
 	shares = (int *)malloc(sizeof(int) * shareNum);
-	chara_sec = (char **)malloc(sizeof(char *) * shareNum);
+	charaSecret = (char **)malloc(sizeof(char *) * shareNum);
 	for (i = 0; i < shareNum; i++) {
-		chara_sec[i] = (char *)malloc(sizeof(char) * BUFSIZE);
+		charaSecret[i] = (char *)malloc(sizeof(char) * BUFSIZE);
 	}
 	
 	/*
 	 * open share file
 	 */
 	for (i = 0; i < shareNum; i++) {
-		fd_sha[i] = open(path[i], O_RDONLY);
-		if (fd_sha[i] == -1) {
+		fdShares[i] = open(path[i], O_RDONLY);
+		if (fdShares[i] == -1) {
 			fprintf(stderr, "err:open() %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 
-		fp_sha[i] = fdopen(fd_sha[i], "r");
-		if (fp_sha[i] == NULL) {
+		fpShares[i] = fdopen(fdShares[i], "r");
+		if (fpShares[i] == NULL) {
 			fprintf(stderr, "err:fdopen() %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
@@ -246,15 +246,15 @@ void combine(char *path[], int shareNum, int *GF_vector)
 	 * read 2 characters, then reconstruct secret from shares
 	 */
 	j = 0;
-	while ((c = fgetc(fp_sha[0])) != EOF) {
-		chara_sec[0][j] = c;
+	while ((c = fgetc(fpShares[0])) != EOF) {
+		charaSecret[0][j] = c;
 		for (i = 1; i < shareNum; i++) {
-			c = fgetc(fp_sha[i]);
-			chara_sec[i][j] = c;
+			c = fgetc(fpShares[i]);
+			charaSecret[i][j] = c;
 		}
 		if (j == (BUFSIZE - 1)) {
 			for (k = 0; k < shareNum; k++) {
-				shares[k] = (int)strtol(chara_sec[k], &end, 16);
+				shares[k] = (int)strtol(charaSecret[k], &end, 16);
 			}
 			secret = lagrange(shareNum, serverId, shares, GF_vector);
 			printf("%c", secret);
@@ -268,13 +268,13 @@ void combine(char *path[], int shareNum, int *GF_vector)
 	free(serverId);
 	free(shares);
 	for (i = 0; i < shareNum; i++) {
-		free(fp_sha[i]);
+		free(fpShares[i]);
 		free(num[i]);
-		free(chara_sec[i]);
+		free(charaSecret[i]);
 	}
-	free(fd_sha);
+	free(fdShares);
 	free(num);
-	free(chara_sec);
+	free(charaSecret);
 }
 
 /*
