@@ -14,13 +14,18 @@
 #include "ss_utils.h"
 #include "const.h"
 
-/* struct of options */
+/*
+ *  struct of options
+ */
 static struct option longopts[] = {
 	{"mode",	required_argument,	NULL,	'm'},
 	{"help",	no_argument,		NULL,	'h'},
 	{0,		0,			0,	0}
 };
 
+/*
+ * init parameter struct
+ */
 SS_param SS = {0, 0};
 
 int main(int argc, char *argv[])
@@ -33,7 +38,9 @@ int main(int argc, char *argv[])
 
 	srand((unsigned)time(NULL));
 
-	/* parse option */
+	/*
+	 * parse option
+	 */
 	if (argc < 2) {
 		fprintf(stderr, "Too a few arguments\n");
 		fprintf(stderr, USAGE, argv[0]);
@@ -76,10 +83,15 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	/* init GF info, vector */
+	/*
+	 * init GF info, vector
+	 */
 	GF_vector = (int *)malloc(sizeof(int) * FIELD_SIZE);
 	set_GF_info(GF_vector);
 
+	/*
+	 * processing
+	 */
 	if (strcmp(mode_flag, "split") == 0) {
 		fprintf(stdout, "mode:%s\n", mode_flag);
 		if (optind == argc - 1) {
@@ -118,6 +130,9 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	/*
+	 * free memory
+	 */
 	free(GF_vector);
 
 	return 0;
