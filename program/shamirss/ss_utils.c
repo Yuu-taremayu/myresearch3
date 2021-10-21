@@ -10,23 +10,33 @@
 #include "ss_utils.h"
 #include "const.h"
 
-/* operations of secret sharing */
+/*
+ * operations of secret sharing
+ */
 void split(char *path, int *GF_vector);
 void combine(char *path[], int shareNum, int *GF_vector);
 
-/* generating functions to prepare secret sharing */
+/*
+ * generating functions to prepare secret sharing
+ */
 void generate_server_id(int *serverId, int n);
 void generate_polynomial(int *poly, int secret, int k);
 
-/* create shares */
+/*
+ * create shares
+ */
 void create_shares(int *serverId, int *poly, int *shares, SS_param SS, int *GF_vector);
 
 extern SS_param SS;
 
-/* split secret and create shares */
+/*
+ * split secret and create shares
+ */
 void split(char *path, int *GF_vector)
 {
-	/* for file IO */
+	/*
+	 * for file IO
+	 */
 	FILE *fp_sec = NULL;
 	int fd_sec = 0;
 	FILE **fp_sha = NULL;
@@ -36,7 +46,9 @@ void split(char *path, int *GF_vector)
 	int digit = 0;
 	int fileNameLen = 0;
 	int newFileMode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH;
-	/* for read or write */
+	/* 
+	 * for read or write
+	 */
 	char chara;
 	char *chara_sha = NULL;
 	int secret = 0;
@@ -45,7 +57,9 @@ void split(char *path, int *GF_vector)
 	int *shares = NULL;
 	int i;
 
-	/* open secret file */
+	/*
+	 * open secret file
+	 */
 	fd_sec = open(path, O_RDONLY);
 	if (fd_sec == -1) {
 		fprintf(stderr, "err:open() %s", strerror(errno));
@@ -58,7 +72,9 @@ void split(char *path, int *GF_vector)
 		exit(EXIT_FAILURE);
 	}
 
-	/* dynamic memory allocation */
+	/*
+	 * dynamic memory allocation
+	 */
 	serverId = (int *)malloc(sizeof(int) * (SS.n));
 	poly = (int *)malloc(sizeof(int) * (SS.k));
 	shares = (int *)malloc(sizeof(int) * (SS.n));
@@ -78,8 +94,10 @@ void split(char *path, int *GF_vector)
 	fileName = (char *)malloc(sizeof(char) * fileNameLen);
 	fileNum = (char *)malloc(sizeof(char) * digit);
 
-	/* create file of share */
-	/* if it already exists the same name file, return EXIT_FAILURE */
+	/*
+	 * create file of share
+	 * if it already exists the same name file, return EXIT_FAILURE
+	 */
 	for (i = 0; i < SS.n; i++) {
 		if (sprintf(fileNum, "%d", i + 1) < 0) {
 			fprintf(stderr, "err:sprintf() %s\n", strerror(errno));
@@ -106,9 +124,10 @@ void split(char *path, int *GF_vector)
 
 	generate_server_id(serverId, SS.n);
 
-	/* read a byte, then create and write shares*/
+	/*
+	 * read a byte, then create and write shares
+	 */
 	while ((chara = getc(fp_sec)) != EOF) {
-		//printf("%x, %x\n", chara, EOF);
 		secret = chara;
 		if (secret > 255 || secret < 0) {
 			fprintf(stderr, "invalid character\n");
@@ -130,7 +149,9 @@ void split(char *path, int *GF_vector)
 		}
 	}
 
-	/* close stream */
+	/*
+	 * close stream
+	 */
 	for (i = 0; i < SS.n; i++) {
 		if (fclose(fp_sha[i]) != 0) {
 			fprintf(stderr, "err:fclose() %s\n", strerror(errno));
@@ -142,6 +163,9 @@ void split(char *path, int *GF_vector)
 		exit(EXIT_FAILURE);
 	}
 
+	/*
+	 * free variables
+	 */
 	free(serverId);
 	free(poly);
 	free(shares);
@@ -152,9 +176,14 @@ void split(char *path, int *GF_vector)
 	free(fd_sha);
 }
 
-/* combine shares and restore secret */
+/*
+ * combine shares and restore secret
+ */
 void combine(char *path[], int shareNum, int *GF_vector)
 {
+	/*
+	 * for file IO
+	 */
 	FILE **fp_sha = NULL;
 	int *fd_sha = NULL;
 	int *serverId = NULL;
@@ -166,17 +195,21 @@ void combine(char *path[], int shareNum, int *GF_vector)
 	int c;
 	int i = 0, j = 0, k = 0;
 
+	/*
+	 * dynamic memory allocation
+	 */
 	fp_sha = (FILE **)malloc(sizeof(FILE *) * shareNum);
 	fd_sha = (int *)malloc(sizeof(int) * shareNum);
 	serverId = (int *)malloc(sizeof(int) * shareNum);
 	shares = (int *)malloc(sizeof(int) * shareNum);
 	chara_sec = (char **)malloc(sizeof(char *) * shareNum);
-
 	for (i = 0; i < shareNum; i++) {
 		chara_sec[i] = (char *)malloc(sizeof(char) * BUFSIZE);
 	}
 	
-	/* open share file */
+	/*
+	 * open share file
+	 */
 	for (i = 0; i < shareNum; i++) {
 		fd_sha[i] = open(path[i], O_RDONLY);
 		if (fd_sha[i] == -1) {
@@ -191,7 +224,9 @@ void combine(char *path[], int shareNum, int *GF_vector)
 		}
 	}
 
-	/* extract serverId from file name*/
+	/*
+	 * extract serverId from file name
+	 */
 	num = (char **)malloc(sizeof(char *) * shareNum);
 	j = 0;
 	for (i = 0; i < shareNum; i++) {
@@ -207,7 +242,9 @@ void combine(char *path[], int shareNum, int *GF_vector)
 		j = 0;
 	}
 
-	/* read 2 characters, then reconstruct secret from shares */
+	/*
+	 * read 2 characters, then reconstruct secret from shares
+	 */
 	j = 0;
 	while ((c = fgetc(fp_sha[0])) != EOF) {
 		chara_sec[0][j] = c;
@@ -225,6 +262,9 @@ void combine(char *path[], int shareNum, int *GF_vector)
 		j = (j + 1) % BUFSIZE;
 	}
 
+	/*
+	 * free variables
+	 */
 	free(serverId);
 	free(shares);
 	for (i = 0; i < shareNum; i++) {
@@ -237,7 +277,9 @@ void combine(char *path[], int shareNum, int *GF_vector)
 	free(chara_sec);
 }
 
-/* prepare server IDs that are all different */
+/*
+ * prepare server IDs that are all different
+ */
 void generate_server_id(int *serverId, int n)
 {
 	int i = 0;
@@ -247,7 +289,9 @@ void generate_server_id(int *serverId, int n)
 	}
 }
 
-/* prepare polynomial for generating shares */
+/*
+ * prepare polynomial for generating shares
+ */
 void generate_polynomial(int *poly, int secret, int k)
 {
 	int i = 0;
@@ -258,7 +302,9 @@ void generate_polynomial(int *poly, int secret, int k)
 	}
 }
 
-/* create shares */
+/*
+ * create shares
+ */
 void create_shares(int *serverId, int *poly, int *shares, SS_param SS, int *GF_vector)
 {
 	int i = 0;
