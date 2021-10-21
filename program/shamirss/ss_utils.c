@@ -193,6 +193,11 @@ void combine(char *path[], int shareNum, int *GF_vector)
 	int *shares = NULL;
 	int secret = 0;
 	char **charaSecret = NULL;
+	char *outputFilename = "secret.reconst";
+	FILE *fpOut = NULL;
+	int fdOut = 0;
+	int newFilemode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH;
+	int openFlag = O_CREAT | O_EXCL | O_APPEND | O_WRONLY;
 	int c;
 	int i = 0, j = 0, k = 0;
 
@@ -223,6 +228,18 @@ void combine(char *path[], int shareNum, int *GF_vector)
 			fprintf(stderr, "err:fdopen() %s\n", strerror(errno));
 			exit(EXIT_FAILURE);
 		}
+	}
+
+	fdOut = open(outputFilename, openFlag, newFilemode);
+	if (fdOut == -1) {
+		fprintf(stderr, "err:open() %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	fpOut = fdopen(fdOut, "a");
+	if (fpOut == NULL) {
+		fprintf(stderr, "err:fdopen() %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
 	}
 
 	/*
@@ -258,6 +275,11 @@ void combine(char *path[], int shareNum, int *GF_vector)
 				shares[k] = (int)strtol(charaSecret[k], &end, 16);
 			}
 			secret = lagrange(shareNum, serverId, shares, GF_vector);
+
+			if (fprintf(fpOut, "%c", secret) < 0) {
+				fprintf(stderr, "err:fprintf() %s\n", strerror(errno));
+				exit(EXIT_FAILURE);
+			}
 			printf("%c", secret);
 		}
 		j = (j + 1) % BUFSIZE;
