@@ -1,5 +1,5 @@
-EXENAME = shamirss8bit
-SRCFILE = shamirss8bit.c
+EXENAME = shamirss8bitnosyscall
+SRCFILE = shamirss8bitnosyscall.c
 OBJS = field_op.o ss_utils.o
 CC = gcc
 CFLAGS = -Wall -Wextra -g3 -O0 -MMD
