@@ -84,7 +84,7 @@ elif [ "${ssmode}" = "combine" ]; then
 		files+=("${var}.share")
 	done
 
-	${mmode} ./shamirss8bitnosyscall --mode=${ssmode} ${files[@]}
+	eval ${mmode} ./shamirss8bitnosyscall --mode=${ssmode} ${files[@]}
 
 fi
 
