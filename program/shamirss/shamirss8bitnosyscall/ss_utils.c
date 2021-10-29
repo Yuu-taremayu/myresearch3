@@ -173,7 +173,7 @@ void combine(char *path[], int shareNum, int *GF_vector)
 	int *shares = NULL;
 	int secret = 0;
 	char **charaSecret = NULL;
-	char *outputFilename = "secret.reconst";
+	char *outputFilename = "secret_reconst.txt";
 	FILE *fpOut = NULL;
 	int c;
 	int i = 0, j = 0, k = 0;
