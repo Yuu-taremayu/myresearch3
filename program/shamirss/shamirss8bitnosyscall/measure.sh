@@ -76,6 +76,20 @@ elif [ "${ssmode}" = "combine" ]; then
 		exit 1
 	fi
 
+	# Choose test file
+	echo -n "Test file size (large or small):"
+	read size
+	echo ""
+
+	if [ "${size}" = "large" ]; then
+		testFile="../test_large.txt"
+	elif [ "${size}" = "small" ]; then
+		testFile="../test_small.txt"
+	else
+		echo "Error: invalid size, please retype parameter (large or small)."
+		exit 1
+	fi
+
 	# Set share file name
 	echo "Use 1 to ${num} share"
 	files=()
@@ -84,7 +98,10 @@ elif [ "${ssmode}" = "combine" ]; then
 		files+=("${var}.share")
 	done
 
+	echo "-----"
 	eval ${mmode} ./shamirss8bitnosyscall --mode=${ssmode} ${files[@]}
+	echo "-----"
 
+	diff -s ${testFile} secret_reconst.txt
 fi
 
