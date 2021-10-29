@@ -2,9 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
 
 #include "field_op.h"
 #include "ss_utils.h"
@@ -45,8 +42,6 @@ void split(char *path, int *GF_vector)
 	char *fileNum = NULL;
 	int digit = 0;
 	int fileNameLen = 0;
-	//int newFileMode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH;
-	//int openFlag = O_CREAT | O_EXCL | O_APPEND | O_WRONLY;
 	/* 
 	 * for read or write
 	 */
@@ -61,19 +56,6 @@ void split(char *path, int *GF_vector)
 	/*
 	 * open secret file
 	 */
-	/*
-	fdSecret = open(path, O_RDONLY);
-	if (fdSecret == -1) {
-		fprintf(stderr, "err:open() %s", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-
-	fpSecret = fdopen(fdSecret, "r");
-	if (fpSecret == NULL) {
-		fprintf(stderr, "err:fdopen() %s", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-	*/
 	fpSecret = fopen(path, "r");
 	if (fpSecret == NULL) {
 		fprintf(stderr, "err:fopen() %s", strerror(errno));
@@ -88,7 +70,6 @@ void split(char *path, int *GF_vector)
 	shares = (int *)malloc(sizeof(int) * (SS.n));
 	charaShares = (char *)malloc(sizeof(char) * 1);
 	fpShares = (FILE **)malloc(sizeof(FILE *) * SS.n);
-	//fdShares = (int *)malloc(sizeof(int) * SS.n);
 	if (SS.n < 10) {
 		digit = 1;
 	}
@@ -117,19 +98,6 @@ void split(char *path, int *GF_vector)
 			exit(EXIT_FAILURE);
 		}
 
-		/*
-		fdShares[i] = open(fileName, openFlag, newFileMode);
-		if (fdShares[i] == -1) {
-			fprintf(stderr, "err:open() %s\n", strerror(errno));
-			exit(EXIT_FAILURE);
-		}
-
-		fpShares[i] = fdopen(fdShares[i], "w");
-		if (fpShares[i] == NULL) {
-			fprintf(stderr, "err:fdopen() %s\n", strerror(errno));
-			exit(EXIT_FAILURE);
-		}
-		*/
 		fpShares[i] = fopen(fileName, "w");
 		if (fpShares[i] == NULL) {
 			fprintf(stderr, "err:fopen() %s\n", strerror(errno));
@@ -188,7 +156,6 @@ void split(char *path, int *GF_vector)
 	free(fileName);
 	free(fileNum);
 	free(fpShares);
-	//free(fdShares);
 }
 
 /*
@@ -200,7 +167,6 @@ void combine(char *path[], int shareNum, int *GF_vector)
 	 * for file IO
 	 */
 	FILE **fpShares = NULL;
-	//int *fdShares = NULL;
 	int *serverId = NULL;
 	char **num = NULL;
 	char *end = NULL;
@@ -209,9 +175,6 @@ void combine(char *path[], int shareNum, int *GF_vector)
 	char **charaSecret = NULL;
 	char *outputFilename = "secret.reconst";
 	FILE *fpOut = NULL;
-	//int fdOut = 0;
-	//int newFilemode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IWOTH | S_IROTH;
-	//int openFlag = O_CREAT | O_EXCL | O_APPEND | O_WRONLY;
 	int c;
 	int i = 0, j = 0, k = 0;
 
@@ -219,7 +182,6 @@ void combine(char *path[], int shareNum, int *GF_vector)
 	 * dynamic memory allocation
 	 */
 	fpShares = (FILE **)malloc(sizeof(FILE *) * shareNum);
-	//fdShares = (int *)malloc(sizeof(int) * shareNum);
 	serverId = (int *)malloc(sizeof(int) * shareNum);
 	shares = (int *)malloc(sizeof(int) * shareNum);
 	charaSecret = (char **)malloc(sizeof(char *) * shareNum);
@@ -231,19 +193,6 @@ void combine(char *path[], int shareNum, int *GF_vector)
 	 * open share file
 	 */
 	for (i = 0; i < shareNum; i++) {
-		/*
-		fdShares[i] = open(path[i], O_RDONLY);
-		if (fdShares[i] == -1) {
-			fprintf(stderr, "err:open() %s\n", strerror(errno));
-			exit(EXIT_FAILURE);
-		}
-
-		fpShares[i] = fdopen(fdShares[i], "r");
-		if (fpShares[i] == NULL) {
-			fprintf(stderr, "err:fdopen() %s\n", strerror(errno));
-			exit(EXIT_FAILURE);
-		}
-		*/
 		fpShares[i] = fopen(path[i], "r");
 		if (fpShares[i] == NULL) {
 			fprintf(stderr, "err:fopen() %s\n", strerror(errno));
@@ -254,19 +203,6 @@ void combine(char *path[], int shareNum, int *GF_vector)
 	/*
 	 * open output file in create mode
 	 */
-	/*
-	fdOut = open(outputFilename, openFlag, newFilemode);
-	if (fdOut == -1) {
-		fprintf(stderr, "err:open() %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-
-	fpOut = fdopen(fdOut, "a");
-	if (fpOut == NULL) {
-		fprintf(stderr, "err:fdopen() %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-	*/
 	fpOut = fopen(outputFilename, "w");
 	if (fpOut == NULL) {
 		fprintf(stderr, "err:fopen() %s\n", strerror(errno));
@@ -318,14 +254,6 @@ void combine(char *path[], int shareNum, int *GF_vector)
 	/*
 	 * close stream
 	 */
-	/*
-	for (i = 0; i < shareNum; i++) {
-		if (fclose(fpShares[i]) != 0) {
-			fprintf(stderr, "err:fclose() %s\n", strerror(errno));
-			exit(EXIT_FAILURE);
-		}
-	}
-	*/
 	if (fclose(fpOut) != 0) {
 		fprintf(stderr, "err:fclose() %s\n", strerror(errno));
 		exit(EXIT_FAILURE);
@@ -341,7 +269,6 @@ void combine(char *path[], int shareNum, int *GF_vector)
 		free(charaSecret[i]);
 	}
 	free(fpShares);
-	//free(fdShares);
 	free(num);
 	free(charaSecret);
 }
