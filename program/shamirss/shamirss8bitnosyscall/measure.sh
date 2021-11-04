@@ -1,5 +1,7 @@
 #! /bin/bash
 
+# Choose some parameters, execute and measure
+
 # Choose measure mode
 echo "Choose measure mode (1:time or 2:system call)"
 echo -n "Please input 1 or 2:"
