@@ -89,10 +89,7 @@ int main(int argc, char *argv[])
 	 * processing
 	 */
 	if (strcmp(modeFlag, "split") == 0) {
-		fprintf(stdout, "mode:%s\n", modeFlag);
 		if (optind == argc - 1) {
-			printf("%s\n", argv[optind]);
-
 			char *path = NULL;
 
 			path = (char *)malloc(sizeof(char) * strlen(argv[optind]));
@@ -107,7 +104,6 @@ int main(int argc, char *argv[])
 		}
 	}
 	else if (strcmp(modeFlag, "combine") == 0) {
-		fprintf(stdout, "mode:%s\n", modeFlag);
 		if (optind == argc) {
 			fprintf(stderr, USAGE, argv[0]);
 			exit(EXIT_FAILURE);
