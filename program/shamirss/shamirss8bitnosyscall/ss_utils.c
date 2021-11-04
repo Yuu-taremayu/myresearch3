@@ -35,9 +35,7 @@ void split(char *path, int *GF_vector)
 	 * for file IO
 	 */
 	FILE *fpSecret = NULL;
-	//int fdSecret = 0;
 	FILE **fpShares = NULL;
-	//int *fdShares = NULL;
 	char *fileName = NULL;
 	char *fileNum = NULL;
 	int digit = 0;
